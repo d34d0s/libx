@@ -1,0 +1,9 @@
+{
+    "compiler": "MinGW",
+    "project": "d34dc",
+    "include_dirs": ["d34dc/include"],
+    "source_dirs": ["d34dc/src"],
+    "defines": ["DLL_EXPORT"],
+    "output": "dll",
+    "output_dir": "build"
+}
