@@ -1,4 +1,4 @@
-# d34dc
-A custom generic featureset for C.
+# stdlibx
+a custom, modern featureset for C. 
 
-> Note: d34dc targets modern x64 Windows machines.
+> Note: stdlibx targets x64 Windows machines.
