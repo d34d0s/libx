@@ -1,0 +1,11 @@
+{
+    "compiler": "MinGW",
+    "project": "ds_test",
+    "include_dirs": ["stdlibx/include"],
+    "source_files": ["tests/ds_test.c"],
+    "libraries": {
+	"stdlibx": "build"
+    },
+    "output": "exe",
+    "output_dir": "build"
+}

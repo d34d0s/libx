@@ -1,8 +1,8 @@
 {
     "compiler": "MinGW",
-    "project": "d34dc",
-    "include_dirs": ["d34dc/include"],
-    "source_dirs": ["d34dc/src"],
+    "project": "stdlibx",
+    "include_dirs": ["stdlibx/include"],
+    "source_dirs": ["stdlibx/src"],
     "defines": ["DLL_EXPORT"],
     "output": "dll",
     "output_dir": "build"

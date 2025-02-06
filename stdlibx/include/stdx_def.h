@@ -19,18 +19,18 @@ typedef unsigned long long 	u64;
 
 #ifdef DLL_EXPORT
     #ifdef _MSC_VER
-        #define PUBLIC_FUNC __declspec(dllexport)
+        #define STDX_API __declspec(dllexport)
     #elif #defined (__GNUC__) || defined (__clang__)
-        #define PUBLIC_FUNC __attribute__((visibility("default")))
+        #define STDX_API __attribute__((visibility("default")))
     #else
-        #define PUBLIC_FUNC
+        #define STDX_API
     #endif
 #else
     #ifdef _MSC_VER
-        #define PUBLIC_FUNC __declspec(dllimport)
+        #define STDX_API __declspec(dllimport)
     #elif defined(__GNUC__) || defined(__clang__)
-        #define PUBLIC_FUNC __attribute__((visibility("default")))
+        #define STDX_API __attribute__((visibility("default")))
     #else
-        #define PUBLIC_FUNC
+        #define STDX_API
     #endif
 #endif
