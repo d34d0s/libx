@@ -1,32 +1,48 @@
 #include "../stdlibx/include/stdx_ds.h"
 
-int main() {
-	u32* array = (u32*)stdx_create_array(sizeof(u32), 10);
+void main() {
+	stdx_init_data_structs();
 
-	array[0] = 123;
-	array[1] = 456;
-	array[2] = 789;
+	f32* verts = data_structs->create_array(sizeof(f32), 3);
 
-	for (int i = 0; i < 3; i++) {
-		printf("ARR[%d] = %d\n", i, array[i]);
-	}
+	f32 age = 23.0f;
+	f32 age2 = 420.0f;
+	f32 age3 = 123321.0f;
+	data_structs->push_array(verts, &age);
+	printf("verts[0] = %0.1f\n", verts[0]);
+	
+	data_structs->push_array(verts, &age2);
+	printf("verts[1] = %0.1f\n", verts[1]);
+	
+	data_structs->push_array(verts, &age3);
+	printf("verts[2] = %0.1f\n", verts[2]);
+	
+	// never happens as cap has been reached, index 2 is not overwritten.
+	data_structs->push_array(verts, &age);
+	printf("verts[2] = %0.1f\n", verts[2]);
 
-	Stdx_Array_Head arrhead = stdx_arrhead(array);
-	printf("ARR SIZE: %d\n", arrhead.size);
-	printf("ARR STRIDE: %d\n", arrhead.stride);
-	printf("ARR COUNT: %d\n", arrhead.count);
-	printf("ARR CAPACITY: %d\n", arrhead.capacity);
+	Stdx_Array_Head vhead = data_structs->get_array_head(verts);
+	printf("size: %d\n", vhead.size);
+	printf("stride: %d\n", vhead.stride);
+	printf("count: %d\n", vhead.count);
+	printf("capacity: %d\n", vhead.capacity);
 
-	stdx_realloc(array, (sizeof(u32) * 20), 16);
+	verts = data_structs->resize_array(verts, 6);
 
-	printf("ARR SIZE: %d\n", arrhead.size);
-	printf("ARR STRIDE: %d\n", arrhead.stride);
-	printf("ARR COUNT: %d\n", arrhead.count);
-	printf("ARR CAPACITY: %d\n", arrhead.capacity);
+	// data persists after resizing
+	printf("verts[0] = %0.1f\n", verts[0]);
+	printf("verts[1] = %0.1f\n", verts[1]);
+	printf("verts[2] = %0.1f\n", verts[2]);
 
-	stdx_destroy_array(array);
+	// array headers are automatically updated when using the API.
+	vhead = data_structs->get_array_head(verts);
+	printf("size: %d\n", vhead.size);
+	printf("stride: %d\n", vhead.stride);
+	printf("count: %d\n", vhead.count);
+	printf("capacity: %d\n", vhead.capacity);
+	
+	data_structs->destroy_array(verts);
 
+	stdx_cleanup_data_structs();
 	printf("OK!\n");
-	return 0;
 }
-
