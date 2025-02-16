@@ -1,6 +1,8 @@
-#include "../include/stdx_mem.h"
+#include "../include/stdx_memory.h"
 
-void stdx_dealloc(void* ptr) {
+_stdx_memory_api* memory_api = NULL;
+
+void _dealloc_impl(void* ptr) {
 	if (!ptr) return;	// error: null ptr!
 	// retrieve the pointer difference stored before the ptr
 	u16 diff = *((u16*)ptr - 1);
@@ -9,7 +11,7 @@ void stdx_dealloc(void* ptr) {
 	free((void*)((u64)ptr - diff));
 }
 
-void* stdx_alloc(u64 size, u64 align) {
+void* _alloc_impl(u64 size, u64 align) {
 	if (!size || !IP2(align)) return NULL;	// error: value error!
 
 	// allocate 2 extra bytes for pointer difference
@@ -26,8 +28,8 @@ void* stdx_alloc(u64 size, u64 align) {
 	return aptr;
 }
 
-void* stdx_realloc(void* ptr, u64 size, u64 align) {
-	if (!ptr) return stdx_alloc(size, align);	// error: null ptr!
+void* _realloc_impl(void* ptr, u64 size, u64 align) {
+	if (!ptr) return memory_api->alloc(size, align);	// error: null ptr!
 	if (!size || !IP2(align)) return NULL;	// error: value error!
 	
 	// retrieve the pointer difference stored before the ptr
@@ -49,3 +51,19 @@ void* stdx_realloc(void* ptr, u64 size, u64 align) {
 
 	return aptr;
 }
+
+u8 stdx_init_memory(void) {
+	memory_api = (_stdx_memory_api*)malloc(sizeof(_stdx_memory_api));
+	if (!memory_api) return STDX_FALSE;
+
+	memory_api->alloc = _alloc_impl;
+	memory_api->dealloc = _dealloc_impl;
+	memory_api->realloc = _realloc_impl;
+
+	return STDX_TRUE;
+}
+
+void stdx_cleanup_memory(void) {
+	free(memory_api);
+}
+
