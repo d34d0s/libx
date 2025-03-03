@@ -155,24 +155,22 @@ void _destroy_linked_array_impl(Linked_Array* array) {
 void _collapse_linked_array_impl(Linked_Array* array) {
     if (!array) return; // error: null ptr!
     
-    if (array->next) {
-        array->next->last = NULL;
-        structs_api->collapse_linked_array(array->next);
+    Linked_Array* next = array->next;
+    while (next) {
+        Linked_Array* temp = next->next;
+        structs_api->destroy_linked_array(next);
+        next = temp;
     }
-    
-    if (array->last) {
-        array->last->next = NULL;
-        structs_api->collapse_linked_array(array->last);
-    }
-    
-    structs_api->destroy_array(array->array);
-    memory_api->dealloc(array);
-    
-    array->array = NULL;
-    array->last = NULL;
-    array->next = NULL;
-}
 
+	Linked_Array* last = array->last;
+    while (last) {
+        Linked_Array* temp = last->last;
+        structs_api->destroy_linked_array(last);
+        last = temp;
+    }
+    
+	structs_api->destroy_linked_array(array);
+}
 /* ---------------- LINKED ARRAY ---------------- */
 
 
