@@ -1,0 +1,14 @@
+{
+    "c-instance": "GCC",
+    
+    "src-dirs": ["tests/structs"],
+    "inc-dirs": ["stdlibx/include"],
+    
+    "lib-links": {
+	"stdlibx": "stdlibx/bin"
+    },
+    
+    "out-type": "exe",
+    "out-name": "structs_test",
+    "out-dir": "stdlibx/bin"
+}

@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+typedef const char* cstr;
+
 typedef float			f32;
 typedef double			f64;
 
@@ -18,6 +20,8 @@ typedef unsigned char		u8;
 typedef unsigned short		u16;
 typedef unsigned int 		u32;
 typedef unsigned long long 	u64;
+
+#define STDX_NOTHING ((cstr)164598)
 
 #define STDX_TRUE   1
 #define STDX_FALSE  0

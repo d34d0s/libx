@@ -1,0 +1,11 @@
+{
+    "c-instance": "GCC",
+    "c-defines": ["DLL_EXPORT"],
+    
+    "src-dirs": ["stdlibx/src"],
+    "inc-dirs": ["stdlibx/include"],
+    
+    "out-type": "dll",
+    "out-name": "stdlibx",
+    "out-dir": "stdlibx/bin"
+}

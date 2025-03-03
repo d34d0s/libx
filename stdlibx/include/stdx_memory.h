@@ -5,6 +5,14 @@
 #define IP2(x) ((x & (x - 1)) == 0)
 #define ALIGN(p, a) (((p) + ((a) - 1)) & ~((a) - 1))
 
+/* ---------------- ARENA ALLOCATOR ---------------- */
+/* ---------------- ARENA ALLOCATOR ---------------- */
+
+
+/* ---------------- LINKED ALLOCATOR ---------------- */
+/* ---------------- LINKED ALLOCATOR ---------------- */
+
+
 typedef struct _stdx_memory_api {
     void (*dealloc)(void* ptr);
     void* (*alloc)(u64 size, u64 align);

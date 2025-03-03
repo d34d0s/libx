@@ -2,6 +2,7 @@
 
 _stdx_memory_api* memory_api = NULL;
 
+/* ---------------- STANDARD ---------------- */
 void _dealloc_impl(void* ptr) {
 	if (!ptr) return;	// error: null ptr!
 	// retrieve the pointer difference stored before the ptr
@@ -51,7 +52,18 @@ void* _realloc_impl(void* ptr, u64 size, u64 align) {
 
 	return aptr;
 }
+/* ---------------- STANDARD ---------------- */
 
+
+/* ---------------- ARENA ALLOCATOR ---------------- */
+/* ---------------- ARENA ALLOCATOR ---------------- */
+
+
+/* ---------------- LINKED ALLOCATOR ---------------- */
+/* ---------------- LINKED ALLOCATOR ---------------- */
+
+
+/* ---------------- API ---------------- */
 u8 stdx_init_memory(void) {
 	memory_api = (_stdx_memory_api*)malloc(sizeof(_stdx_memory_api));
 	if (!memory_api) return STDX_FALSE;
@@ -66,4 +78,4 @@ u8 stdx_init_memory(void) {
 void stdx_cleanup_memory(void) {
 	free(memory_api);
 }
-
+/* ---------------- API ---------------- */
