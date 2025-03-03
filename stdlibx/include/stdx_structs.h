@@ -4,22 +4,26 @@
 
 /* ---------------- ARRAY ---------------- */
 typedef struct Array_Head {
+    u32 count, max;
     u32 size, stride;
-    u32 count, capacity;
 } Array_Head;
 
 typedef enum Array_Head_Field {
     STDX_ARRAY_SIZE_FIELD = 0,
     STDX_ARRAY_STRIDE_FIELD,
     STDX_ARRAY_COUNT_FIELD,
-    STDX_ARRAY_CAPACITY_FIELD,
+    STDX_ARRAY_MAX_FIELD,
     STDX_ARRAY_FIELDS,
 } Array_Head_Field;
 /* ---------------- ARRAY ---------------- */
 
 
 /* ---------------- LINKED ARRAY ---------------- */
-typedef struct Linked_Array {} Linked_Array;
+typedef struct Linked_Array {
+    struct Linked_Array* last;
+    struct Linked_Array* next;
+    void* array;
+} Linked_Array;
 /* ---------------- LINKED ARRAY ---------------- */
 
 
@@ -34,7 +38,13 @@ typedef struct Hashmap {
 
 
 /* ---------------- QUAD TREE ---------------- */
-typedef struct Quad_Tree {} Quad_Tree;
+typedef struct Quad_Tree {
+    struct Quad_Tree* children;
+    void* objects;
+    u32 stride;
+    u32 count;
+    u32 max;
+} Quad_Tree;
 /* ---------------- QUAD TREE ---------------- */
 
 typedef struct _stdx_structs_api {
@@ -53,8 +63,8 @@ typedef struct _stdx_structs_api {
      */
     void (*pop_array)(void* array, void* outvalue);
     
-    void* (*create_array)(u32 stride, u32 capacity);
-    void* (*resize_array)(void* array, u32 capacity);
+    void* (*create_array)(u32 stride, u32 max);
+    void* (*resize_array)(void* array, u32 max);
     
     /**
      * `put_array` is used to manually write data to an array.
@@ -73,6 +83,24 @@ typedef struct _stdx_structs_api {
      * `get_array_head` is used to return the metadata about an array that is stored in memory along with the array.
      */
     Array_Head (*get_array_head)(void* array);
+
+    /**
+     * `create_linked_array` dynamically allocates and returns a doubly-linked `Linked_Array` structure which is handy for linking blocks of memory containing *n* elements.
+     * Any `Linked_Array` structure created with `create_linked_array` has its array field allocated via `create_array`, thus all other array API functions are applicable.  
+     */
+    Linked_Array* (*create_linked_array)(Linked_Array* array, u32 stride, u32 max);
+    
+        /**
+         * `destroy_linked_array` destroys a specific link within a linked array structure whilst maintaining structural integrity.
+         * Use `collapse_linked_array` to recursively destroy all links in a linked array structure from any link in the structure.
+         */
+    void (*destroy_linked_array)(Linked_Array* array);
+
+    /**
+     * `collapse_linked_array` recursively collapses an entire linked array structure from any link in the structure.
+     * Use `destroy_linked_array` to destroy a specific link whilst maintaining structural integrity.
+     */
+    void (*collapse_linked_array)(Linked_Array* array);
 
     Hashmap* (*create_hashmap)(u32 max);
     u8 (*set_hashmap)(Hashmap* hashmap, cstr key, void* value);

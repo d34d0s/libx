@@ -28,7 +28,7 @@ void main() {
 	printf("size: %d\n", vhead.size);
 	printf("stride: %d\n", vhead.stride);
 	printf("count: %d\n", vhead.count);
-	printf("capacity: %d\n", vhead.capacity);
+	printf("max: %d\n", vhead.max);
 
 	verts = structs_api->resize_array(verts, 6);
 	
@@ -40,12 +40,38 @@ void main() {
 	printf("size: %d\n", vhead.size);
 	printf("stride: %d\n", vhead.stride);
 	printf("count: %d\n", vhead.count);
-	printf("capacity: %d\n", vhead.capacity);
+	printf("max: %d\n", vhead.max);
 	
 	structs_api->destroy_array(verts);
 
-	Hashmap* hm = structs_api->create_hashmap(4);
 
+	Linked_Array* larr = structs_api->create_linked_array(NULL, sizeof(f32), 1);
+	structs_api->put_array(larr->array, 0, &(f32){420.666});
+	
+	Linked_Array* larr2 = structs_api->create_linked_array(larr, sizeof(f32), 2);
+	structs_api->put_array(larr2->array, 0, &(f32){123.321});
+	structs_api->put_array(larr2->array, 1, &(f32){100.001});
+	
+	// link 3 new arrays in front of larr2
+	Linked_Array* larr3 = structs_api->create_linked_array(larr, sizeof(f32), 3);
+	Linked_Array* larr4 = structs_api->create_linked_array(larr, sizeof(f32), 4);
+	Linked_Array* larr5 = structs_api->create_linked_array(larr, sizeof(f32), 5);
+	structs_api->put_array(larr5->array, 2, &(f32){69.96});
+
+	printf("larr->array[0]: %0.3f\n", *(f32*)larr->array);
+	printf("larr2->array[0]: %0.3f\n", ((f32*)larr2->array)[0]);
+	printf("larr2->array[1]: %0.3f\n", ((f32*)larr2->array)[1]);
+	
+	// remove a link from the middle of the linked structure
+	structs_api->destroy_linked_array(larr4);
+
+	// retrieve larr5 data from larr2 2 links behind as larr4 was destroyed
+	printf("larr5->array[2]: %0.3f\n", ((f32*)larr2->last->last->array)[2]);
+	
+	// collapse the whole array
+	structs_api->collapse_linked_array(larr3);
+
+	Hashmap* hm = structs_api->create_hashmap(4);
 	structs_api->set_hashmap(hm, "age", 	&(u32){23});
 	structs_api->set_hashmap(hm, "year", 	&(u32){25});
 	structs_api->set_hashmap(hm, "version", 	&(u32){202501});

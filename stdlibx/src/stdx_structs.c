@@ -7,14 +7,14 @@ _stdx_structs_api* structs_api = NULL;
 /* ---------------- ARRAY ---------------- */
 #define STDX_ARRAY_HEAD_SIZE (sizeof(u32) * 4)
 
-void* _create_array_impl(u32 stride, u32 capacity) {
-    u32* head = (u32*)memory_api->alloc(STDX_ARRAY_HEAD_SIZE + (stride * capacity), 16);
+void* _create_array_impl(u32 stride, u32 max) {
+    u32* head = (u32*)memory_api->alloc(STDX_ARRAY_HEAD_SIZE + (stride * max), 16);
     if (!head) return NULL; // error: out of memory!
 
-    head[STDX_ARRAY_SIZE_FIELD] = STDX_ARRAY_HEAD_SIZE + (stride * capacity);
+    head[STDX_ARRAY_SIZE_FIELD] = STDX_ARRAY_HEAD_SIZE + (stride * max);
     head[STDX_ARRAY_STRIDE_FIELD] = stride;
     head[STDX_ARRAY_COUNT_FIELD] = 0;
-    head[STDX_ARRAY_CAPACITY_FIELD] = capacity;
+    head[STDX_ARRAY_MAX_FIELD] = max;
 
     return (void*)((u8*)head + STDX_ARRAY_HEAD_SIZE);
 }
@@ -23,7 +23,7 @@ void _put_array_impl(void* array, u32 index, void* invalue) {
 	if (!array || !invalue || index < 0) return;
 	
 	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
-	if (index >= head[STDX_ARRAY_CAPACITY_FIELD] || (head[STDX_ARRAY_COUNT_FIELD] + 1) > head[STDX_ARRAY_CAPACITY_FIELD]) return;
+	if (index >= head[STDX_ARRAY_MAX_FIELD] || (head[STDX_ARRAY_COUNT_FIELD] + 1) > head[STDX_ARRAY_MAX_FIELD]) return;
 
 	u32 offset = (head[STDX_ARRAY_STRIDE_FIELD] * index);
 
@@ -37,7 +37,7 @@ void _pull_array_impl(void* array, u32 index, void* outvalue) {
     if (!array || outvalue == NULL) return;
 	
 	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
-	if (index >= head[STDX_ARRAY_CAPACITY_FIELD] || (head[STDX_ARRAY_COUNT_FIELD] - 1) < 0) return;
+	if (index >= head[STDX_ARRAY_MAX_FIELD] || (head[STDX_ARRAY_COUNT_FIELD] - 1) < 0) return;
 
 	u32 offset = (head[STDX_ARRAY_STRIDE_FIELD] * index);
 
@@ -68,22 +68,22 @@ void _pop_array_impl(void* array, void* outvalue) {
     structs_api->pull_array(array, index, outvalue);
 }
 
-void* _resize_array_impl(void* array, u32 capacity) {
-    if (!array || !capacity) array;
+void* _resize_array_impl(void* array, u32 max) {
+    if (!array || !max) array;
 
 	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
     
     u32 count = head[STDX_ARRAY_COUNT_FIELD];
     u32 stride = head[STDX_ARRAY_STRIDE_FIELD];
-    u32 newsize = STDX_ARRAY_HEAD_SIZE + (stride * capacity);
+    u32 newsize = STDX_ARRAY_HEAD_SIZE + (stride * max);
 
     u32* newhead = (u32*)memory_api->realloc(head, newsize, 16);
     if (!newhead) return array;
 
-    newhead[STDX_ARRAY_SIZE_FIELD] = STDX_ARRAY_HEAD_SIZE + (stride * capacity);
+    newhead[STDX_ARRAY_SIZE_FIELD] = STDX_ARRAY_HEAD_SIZE + (stride * max);
     newhead[STDX_ARRAY_STRIDE_FIELD] = stride;
     newhead[STDX_ARRAY_COUNT_FIELD] = count;
-    newhead[STDX_ARRAY_CAPACITY_FIELD] = capacity;
+    newhead[STDX_ARRAY_MAX_FIELD] = max;
 
     return (void*)((u8*)newhead + STDX_ARRAY_HEAD_SIZE);
 }
@@ -101,7 +101,7 @@ Array_Head _get_array_head_impl(void* array) {
     arrhead.size = head[STDX_ARRAY_SIZE_FIELD];
     arrhead.stride = head[STDX_ARRAY_STRIDE_FIELD];
     arrhead.count = head[STDX_ARRAY_COUNT_FIELD];
-    arrhead.capacity = head[STDX_ARRAY_CAPACITY_FIELD];
+    arrhead.max = head[STDX_ARRAY_MAX_FIELD];
 
     return arrhead;
 }
@@ -115,6 +115,64 @@ void _set_array_head_impl(void* array, u32 field, u32 value) {
 
 
 /* ---------------- LINKED ARRAY ---------------- */
+Linked_Array* _create_linked_array_impl(Linked_Array* array, u32 stride, u32 max) {
+    if (!stride || !max) return NULL;   // error: value error!
+
+    Linked_Array* new = (Linked_Array*)memory_api->alloc(sizeof(Linked_Array), 16);
+    if (!new) return NULL;  // error: out of memory!
+
+    new->array = structs_api->create_array(stride, max);
+    if (!new->array) return NULL;    // error: out of memory!
+
+    new->last = NULL;
+    new->next = NULL;
+    if (array) {
+        new->last = array;
+        if (array->next) {
+            new->next = array->next;
+            array->next->last = new;
+        }
+        array->next = new;
+    }
+
+    return new;
+}
+
+void _destroy_linked_array_impl(Linked_Array* array) {
+    if (!array) return; // error: null ptr!
+    
+    if (array->next) array->next->last = array->last;
+    if (array->last) array->last->next = array->next;
+    
+    structs_api->destroy_array(array->array);
+    memory_api->dealloc(array);
+    
+    array->array = NULL;
+    array->last = NULL;
+    array->next = NULL;
+}
+
+void _collapse_linked_array_impl(Linked_Array* array) {
+    if (!array) return; // error: null ptr!
+    
+    if (array->next) {
+        array->next->last = NULL;
+        structs_api->collapse_linked_array(array->next);
+    }
+    
+    if (array->last) {
+        array->last->next = NULL;
+        structs_api->collapse_linked_array(array->last);
+    }
+    
+    structs_api->destroy_array(array->array);
+    memory_api->dealloc(array);
+    
+    array->array = NULL;
+    array->last = NULL;
+    array->next = NULL;
+}
+
 /* ---------------- LINKED ARRAY ---------------- */
 
 
@@ -252,6 +310,10 @@ u8 stdx_init_structs(void) {
     structs_api->resize_array = _resize_array_impl;
     structs_api->destroy_array = _destroy_array_impl;
     structs_api->get_array_head = _get_array_head_impl;
+
+    structs_api->create_linked_array = _create_linked_array_impl;
+    structs_api->destroy_linked_array = _destroy_linked_array_impl;
+    structs_api->collapse_linked_array = _collapse_linked_array_impl;
 
     structs_api->create_hashmap = _create_hashmap_impl;
     structs_api->set_hashmap = _set_hashmap_impl;
