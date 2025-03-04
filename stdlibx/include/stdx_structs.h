@@ -41,14 +41,6 @@ typedef struct Hash_Array {
 /* ---------------- HASH ARRAY ---------------- */
 
 
-/* ---------------- QUAD TREE ---------------- */
-typedef struct Quad_Array {
-    struct Quad_Array* children;
-    void* data;
-    Array_Head meta;
-} Quad_Array;
-/* ---------------- QUAD TREE ---------------- */
-
 typedef struct _stdx_structs_api {
     void (*destroy_array)(void* array);
 
@@ -109,12 +101,6 @@ typedef struct _stdx_structs_api {
     void* (*get_hash_array)(Hash_Array* array, cstr key);
     u8 (*pull_hash_array)(Hash_Array* array, cstr key, Key_Value* out);
     void (*destroy_hash_array)(Hash_Array* array);
-    
-    Quad_Array* (*create_quad_array)(u32 stride, u32 max);
-    u8 (*put_quad_array)(Quad_Array* array, u32 index, void* value);
-    void* (*get_quad_array)(Quad_Array* array, u32 index);
-    u8 (*pull_quad_array)(Quad_Array* array, u32 index);
-    void (*destroy_quad_array)(Quad_Array* array);
 } _stdx_structs_api;
 
 /**

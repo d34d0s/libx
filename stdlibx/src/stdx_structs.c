@@ -286,42 +286,6 @@ void _destroy_hash_array_impl(Hash_Array* array) {
 /* ---------------- HASH ARRAY ---------------- */
 
 
-/* ---------------- QUAD TREE ---------------- */
-Quad_Array* _create_quad_array_impl(u32 stride, u32 max) {
-    if (!stride || !max) return NULL;   // error: value error!
-    
-    Quad_Array* tree = memory_api->alloc(sizeof(Quad_Array), 16);
-    if (!tree) return NULL; // error: out of memory!
-
-    tree->data = structs_api->create_array(stride, max);
-    if (!tree->data) {
-        memory_api->dealloc(tree);
-        return NULL;    // error: out of memory!
-    }
-
-    tree->meta = structs_api->get_array_head(tree->data);
-    tree->children = NULL;
-    return tree;
-}
-
-u8 _put_quad_array_impl(Quad_Array* array, u32 index, void* value) {
-
-}
-
-void* _get_quad_array_impl(Quad_Array* array, u32 index) {
-
-}
-
-u8 _pull_quad_array_impl(Quad_Array* array, u32 index) {
-
-}
-
-void _destroy_quad_tree_impl(Quad_Array* array) {
-
-}
-/* ---------------- QUAD TREE ---------------- */
-
-
 /* ---------------- API ---------------- */
 u8 stdx_init_structs(void) {
     structs_api = (_stdx_structs_api*)memory_api->alloc(sizeof(_stdx_structs_api), 16);
@@ -346,12 +310,6 @@ u8 stdx_init_structs(void) {
     structs_api->pull_hash_array = _pull_hash_array_impl;
     structs_api->destroy_hash_array = _destroy_hash_array_impl;
     
-    structs_api->create_quad_array = _create_quad_array_impl;
-    structs_api->put_quad_array = _put_quad_array_impl;
-    structs_api->get_quad_array = _get_quad_array_impl;
-    structs_api->pull_quad_array = _pull_quad_array_impl;
-    structs_api->destroy_quad_tree = _destroy_quad_tree_impl;
-
     return 1;
 }
 
