@@ -135,6 +135,7 @@ Linked_Array* _create_linked_array_impl(Linked_Array* array, u32 stride, u32 max
         array->next = new;
     }
 
+    new->meta = structs_api->get_array_head(new->array);
     return new;
 }
 
@@ -147,6 +148,7 @@ void _destroy_linked_array_impl(Linked_Array* array) {
     structs_api->destroy_array(array->array);
     memory_api->dealloc(array);
     
+    array->meta = (Array_Head){0};
     array->array = NULL;
     array->last = NULL;
     array->next = NULL;
@@ -174,7 +176,7 @@ void _collapse_linked_array_impl(Linked_Array* array) {
 /* ---------------- LINKED ARRAY ---------------- */
 
 
-/* ---------------- HASHMAP ---------------- */
+/* ---------------- HASH ARRAY ---------------- */
 i32 _fnv1a_hash(cstr string) {
     if (!string) return -1;
     u32 hash = 2166136261u; // FNV-1a offset basis
@@ -184,114 +186,139 @@ i32 _fnv1a_hash(cstr string) {
     }; return hash;
 }
 
-i32 _probe_key_hashmap(Hashmap* hashmap, cstr key) {
-    if (!hashmap || !key) return -1;
+i32 _probe_key_hash_array(Hash_Array* array, cstr key) {
+    if (!array || !key) return -1;
 
-    u32 index = _fnv1a_hash(key) % hashmap->max;
+    Array_Head meta = structs_api->get_array_head(array->map);
+
+    u32 index = _fnv1a_hash(key) % meta.max;
     u32 start = index;
 
-    // forward linear probing
-    while (
-        hashmap->keys[index] != -1 &&
-        hashmap->keys[index] != STDX_NOTHING &&
-        strcmp(hashmap->keys[index], key) != 0) {
-        index = (index + 1) % hashmap->max;  // wraparound
-        if (index == start) return -1;
+    STDX_FORI(0, meta.max, 1) {
+        if (array->map[index].key && strcmp(array->map[index].key, key) == 0) break;
+        else {
+            index = (index + 1) % meta.max;
+            if (index == start) return -1;
+        }
     }
-    
+
     return index;
 }
 
-i32 _probe_slot_hashmap(Hashmap* hashmap, cstr key) {
-    if (!hashmap || !key) return -1;
+i32 _probe_slot_hash_array(Hash_Array* array, cstr key) {
+    if (!array || !key) return -1;
     
-    i32 index = _fnv1a_hash(key) % hashmap->max;
+    Array_Head meta = structs_api->get_array_head(array->map);
+    
+    i32 index = _fnv1a_hash(key) % meta.max;
     i32 start = index;
 
-    while (hashmap->keys[index] != -1 && hashmap->keys[index] != STDX_NOTHING) {
-        index = (index + 1) % hashmap->max;
+    while (array->map[index].key) {
+        index = (index + 1) % meta.max;
         if (index == start) return -1;
     }
-
+  
     return index;
 }
 
-Hashmap* _create_hashmap_impl(u32 max) {
-    Hashmap* hashmap = memory_api->alloc(sizeof(Hashmap), 16);
-    if (!hashmap) return NULL;  // error: out of memory!
+Hash_Array* _create_hash_array_impl(u32 max) {
+    Hash_Array* array = memory_api->alloc(sizeof(Hash_Array), 16);
+    if (!array) return NULL;  // error: out of memory!
 
-    hashmap->keys = (cstr*)structs_api->create_array(sizeof(cstr), max);
-    memset(hashmap->keys, -1, sizeof(cstr) * max);  // memset to a sentinnel value
-    if (!hashmap->keys) {   // error: out of memory!
-        memory_api->dealloc(hashmap);
+    array->map = structs_api->create_array(sizeof(Key_Value), max);
+    if (!array->map) {   // error: out of memory!
+        memory_api->dealloc(array);
         return NULL;
     }
     
-    hashmap->values = (void**)structs_api->create_array(sizeof(void*), max);
-    memset(hashmap->values, -1, sizeof(void*) * max);   // memset to a sentinnel value
-    if (!hashmap->values) { // error: out of memory!
-        structs_api->destroy_array(hashmap->keys);
-        memory_api->dealloc(hashmap);
-        return NULL;
-    }
-
-    hashmap->count = 0;
-    hashmap->max = max;
-    return hashmap;
+    array->meta = structs_api->get_array_head(array->map);
+    return array;
 }
 
-u8 _set_hashmap_impl(Hashmap* hashmap, cstr key, void* value) {
-    if (!hashmap || !key || !value) return STDX_FALSE;  // error: null ptr!
+u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
+    if (!array || !key || !value) return STDX_FALSE;  // error: null ptr!
 
-    // 70% load-factor resize
-    if (hashmap->count >= (u32)(hashmap->max * 0.7)) {
-        hashmap->keys = structs_api->resize_array(hashmap->keys, hashmap->max * 2);
-        hashmap->values = structs_api->resize_array(hashmap->values, hashmap->max * 2);
+    Array_Head meta = structs_api->get_array_head(array->map);
+    if (meta.count > (u32)(meta.max * 0.7)) {
+        Key_Value* temp = structs_api->create_array(sizeof(Key_Value), meta.max * 2);
+        if (!temp) return STDX_FALSE;  // error: out of memory!
+
+        memcpy(temp, array->map, meta.max * meta.stride);
+        structs_api->destroy_array(array->map);
+        array->map = temp;
     }
 
-    i32 index = _probe_slot_hashmap(hashmap, key);
-    if (index == -1) return STDX_FALSE;   // error: slot not found for key!
+    i32 index = _probe_slot_hash_array(array, key);
+    if (index == -1) return -1;
     
-    hashmap->keys[index] = strdup(key);
-    hashmap->values[index] = value;
-    hashmap->count++;
+    structs_api->put_array(array->map, index, &(Key_Value){ .value = value, .key = strdup(key)});
     
+    array->meta = structs_api->get_array_head(array->map);
     return STDX_TRUE;
 }
 
-void* _get_hashmap_impl(Hashmap* hashmap, cstr key) {
-    if (!hashmap || !key) return STDX_FALSE;  // error: null ptr!
+void* _get_hash_array_impl(Hash_Array* array, cstr key) {
+    if (!array || !key) return STDX_FALSE;  // error: null ptr!
     
-    i32 index = _probe_key_hashmap(hashmap, key);
-    if (index == -1) return NULL;   // error: key not found!
-    
-    return hashmap->values[index];
+    i32 index = _probe_key_hash_array(array, key);
+    if (index == -1) return NULL;
+
+    return array->map[index].value;
 }
 
-u8 _rem_hashmap_impl(Hashmap* hashmap, cstr key) {
-    if (!hashmap || !key) return STDX_FALSE;  // error: null ptr!
-    
-    i32 index = _probe_key_hashmap(hashmap, key);
-    if (index == -1) return STDX_FALSE;   // error: key not found!
-    
-    free((void*)hashmap->keys[index]);
-    hashmap->keys[index] = STDX_NOTHING;
-    hashmap->values[index] = NULL;
-    hashmap->count--;
+u8 _pull_hash_array_impl(Hash_Array* array, cstr key, Key_Value* out) {
+    if (!array || !key) return STDX_FALSE;  // error: null ptr!
 
+    i32 index = _probe_key_hash_array(array, key);
+    if (index == -1) return STDX_FALSE;
+
+    structs_api->pull_array(array->map, index, out);
+
+    array->meta = structs_api->get_array_head(array->map);
     return STDX_TRUE;
 }
 
-void _destroy_hashmap_impl(Hashmap* hashmap) {
-    if (!hashmap) return;   // error: null ptr!
-    structs_api->destroy_array(hashmap->values);
-    structs_api->destroy_array(hashmap->keys);
-    memory_api->dealloc(hashmap);
+void _destroy_hash_array_impl(Hash_Array* array) {
+    if (!array) return;   // error: null ptr!
+    structs_api->destroy_array(array->map);
+    memory_api->dealloc(array);
 }
-/* ---------------- HASHMAP ---------------- */
+/* ---------------- HASH ARRAY ---------------- */
 
 
 /* ---------------- QUAD TREE ---------------- */
+Quad_Array* _create_quad_array_impl(u32 stride, u32 max) {
+    if (!stride || !max) return NULL;   // error: value error!
+    
+    Quad_Array* tree = memory_api->alloc(sizeof(Quad_Array), 16);
+    if (!tree) return NULL; // error: out of memory!
+
+    tree->data = structs_api->create_array(stride, max);
+    if (!tree->data) {
+        memory_api->dealloc(tree);
+        return NULL;    // error: out of memory!
+    }
+
+    tree->meta = structs_api->get_array_head(tree->data);
+    tree->children = NULL;
+    return tree;
+}
+
+u8 _put_quad_array_impl(Quad_Array* array, u32 index, void* value) {
+
+}
+
+void* _get_quad_array_impl(Quad_Array* array, u32 index) {
+
+}
+
+u8 _pull_quad_array_impl(Quad_Array* array, u32 index) {
+
+}
+
+void _destroy_quad_tree_impl(Quad_Array* array) {
+
+}
 /* ---------------- QUAD TREE ---------------- */
 
 
@@ -313,11 +340,17 @@ u8 stdx_init_structs(void) {
     structs_api->destroy_linked_array = _destroy_linked_array_impl;
     structs_api->collapse_linked_array = _collapse_linked_array_impl;
 
-    structs_api->create_hashmap = _create_hashmap_impl;
-    structs_api->set_hashmap = _set_hashmap_impl;
-    structs_api->get_hashmap = _get_hashmap_impl;
-    structs_api->rem_hashmap = _rem_hashmap_impl;
-    structs_api->destroy_hashmap = _destroy_hashmap_impl;
+    structs_api->create_hash_array = _create_hash_array_impl;
+    structs_api->put_hash_array = _put_hash_array_impl;
+    structs_api->get_hash_array = _get_hash_array_impl;
+    structs_api->pull_hash_array = _pull_hash_array_impl;
+    structs_api->destroy_hash_array = _destroy_hash_array_impl;
+    
+    structs_api->create_quad_array = _create_quad_array_impl;
+    structs_api->put_quad_array = _put_quad_array_impl;
+    structs_api->get_quad_array = _get_quad_array_impl;
+    structs_api->pull_quad_array = _pull_quad_array_impl;
+    structs_api->destroy_quad_tree = _destroy_quad_tree_impl;
 
     return 1;
 }

@@ -20,8 +20,8 @@ void* _alloc_impl(u64 size, u64 align) {
 	void* optr = malloc(sizeof(u16) + (align - 1) + size);
 	if (!optr) return NULL;	// error: out of memory!
 
-	// move 2 bytes from optr and align+return that address
-	void* aptr = (void*)ALIGN((u64)((u16*)optr + 1), align);
+	// move 2 bytes from optr align, zero, and return that address
+	void* aptr = memset((void*)ALIGN((u64)((u16*)optr + 1), align), 0, size);
 
 	// store pointer diff/offset at the head of the aligned pointer;
 	*((u16*)aptr - 1) = (u16)((u64)aptr - (u64)optr);
@@ -44,7 +44,7 @@ void* _realloc_impl(void* ptr, u64 size, u64 align) {
 	void* nptr = realloc((void*)optr, sizeof(u16) + (align - 1) + size);
 	if (!nptr) return NULL;
 
-	// move 2 bytes from optr and align+return that address
+	// move 2 bytes from optr align, and assign that address
 	void* aptr = (void*)ALIGN((u64)((u16*)nptr + 1), align);
 
 	// store pointer diff/offset at the head of the aligned pointer;

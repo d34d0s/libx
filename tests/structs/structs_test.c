@@ -8,14 +8,11 @@ void main() {
 	f32* verts = structs_api->create_array(sizeof(f32), 3);
 
 	structs_api->push_array(verts, STDX_LITERAL_PTR(f32, 23));
-	printf("verts[0] = %0.1f\n", verts[0]);
-	
 	structs_api->push_array(verts, STDX_LITERAL_PTR(f32, 420));
-	printf("verts[1] = %0.1f\n", verts[1]);
-	
 	structs_api->push_array(verts, STDX_LITERAL_PTR(f32, 123321));
-	printf("verts[2] = %0.1f\n", verts[2]);
-	
+
+	STDX_FORI(0, 3, 1) { printf("verts[%d] = %0.1f\n", i, verts[i]); }
+
 	// never happens as cap has been reached, index 2 is not overwritten.
 	structs_api->push_array(verts, STDX_LITERAL_PTR(f32, 23));
 	printf("verts[2] = %0.1f\n", verts[2]);
@@ -33,7 +30,7 @@ void main() {
 	verts = structs_api->resize_array(verts, 6);
 	
 	// data persists after resizing
-	STDX_FOR(u32, a, 0, vhead.count, 1) { printf("verts[%d] = %0.1f\n", a, verts[a]); }
+	STDX_FOR(u32, a, 0, vhead.count+1, 1) { printf("verts[%d] = %0.1f\n", a, verts[a]); }
 
 	// array headers are automatically updated when using the API.
 	vhead = structs_api->get_array_head(verts);
@@ -43,7 +40,6 @@ void main() {
 	printf("max: %d\n", vhead.max);
 	
 	structs_api->destroy_array(verts);
-
 
 	Linked_Array* larr = structs_api->create_linked_array(NULL, sizeof(f32), 1);
 	structs_api->put_array(larr->array, 0, &(f32){420.666});
@@ -71,18 +67,32 @@ void main() {
 	// collapse the whole array
 	structs_api->collapse_linked_array(larr3);
 
-	Hashmap* hm = structs_api->create_hashmap(4);
-	structs_api->set_hashmap(hm, "age", 	&(u32){23});
-	structs_api->set_hashmap(hm, "year", 	&(u32){25});
-	structs_api->set_hashmap(hm, "version", 	&(u32){202501});
+	Array_Head larr2head = structs_api->get_array_head(larr2->array);
+	printf("larr2 count %d\n", larr2head.count);
 
-	printf("age: %d\n", *(u32*)structs_api->get_hashmap(hm, "age"));
-	printf("year: %d\n", *(u32*)structs_api->get_hashmap(hm, "year"));
-	printf("version: %d\n", *(u32*)structs_api->get_hashmap(hm, "version"));
+	Hash_Array* hash_array = structs_api->create_hash_array(4);
+	structs_api->put_hash_array(hash_array, "age", 	&(u32){1121});
+	structs_api->put_hash_array(hash_array, "something", 	&(u32){666420999});
+	printf("Hash Array Resized %d times!\n", hash_array->meta.max/4);
+	structs_api->put_hash_array(hash_array, "send help", 	"AHHHHHH");
+	structs_api->put_hash_array(hash_array, "something else", 	&(u32){123321});
+	printf("Hash Array Resized %d times!\n", hash_array->meta.max/4);
+	structs_api->put_hash_array(hash_array, "year", 	&(u32){999});
+	structs_api->put_hash_array(hash_array, "version", 	&(u32){222});
+	
 
-	if (structs_api->rem_hashmap(hm, "version"))  printf("version key removed\n");
+	printf("(get) age: %d\n", *(i32*)structs_api->get_hash_array(hash_array, "age"));
+	printf("(get) something: %d\n", *(i32*)structs_api->get_hash_array(hash_array, "something"));
+	printf("(get) send help: %s\n", (cstr)structs_api->get_hash_array(hash_array, "send help"));
+	printf("(get) something else: %d\n", *(i32*)structs_api->get_hash_array(hash_array, "something else"));
+	printf("(get) year: %d\n", *(i32*)structs_api->get_hash_array(hash_array, "year"));
+	printf("(get) version: %d\n", *(i32*)structs_api->get_hash_array(hash_array, "version"));
 
-	structs_api->destroy_hashmap(hm);
+	Key_Value version_kv;
+	if (structs_api->pull_hash_array(hash_array, "version", &version_kv)) 
+		printf("(pull) %s: %d\n", version_kv.key, *(u32*)version_kv.value);
+
+	structs_api->destroy_hash_array(hash_array);
 
 	stdx_cleanup_structs();
 	printf("OK!\n");
