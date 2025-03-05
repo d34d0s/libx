@@ -83,10 +83,10 @@ typedef struct _stdx_structs_api {
      */
     Linked_Array* (*create_linked_array)(Linked_Array* array, u32 stride, u32 max);
     
-        /**
-         * `destroy_linked_array` destroys a specific link within a linked array structure whilst maintaining structural integrity.
-         * Use `collapse_linked_array` to recursively destroy all links in a linked array structure from any link in the structure.
-         */
+    /**
+     * `destroy_linked_array` destroys a specific link within a linked array structure whilst maintaining structural integrity.
+     * Use `collapse_linked_array` to recursively destroy all links in a linked array structure from any link in the structure.
+     */
     void (*destroy_linked_array)(Linked_Array* array);
 
     /**
@@ -101,16 +101,6 @@ typedef struct _stdx_structs_api {
     u8 (*pull_hash_array)(Hash_Array* array, cstr key, Key_Value* out);
     void (*destroy_hash_array)(Hash_Array* array);
 } _stdx_structs_api;
-
-/**
- * This API exists to implement various data-structures that are commonplace
- * in software-engineering.
- * 
- * The structs API follows the same vtable format any other stdx API.
- * 
- * STDX ARRAYS:
- * - stdx implements dynamically allocated arrays to be both static and resizeable.
- */
 extern _stdx_structs_api* structs_api;
 
 STDX_API u8 stdx_init_structs(void);

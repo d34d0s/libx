@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+typedef char*               str;
 typedef const char*         cstr;
 
 typedef float			    f32;
@@ -66,11 +67,6 @@ typedef unsigned long long 	u64;
     typedef struct n {              \
         __VA_ARGS__                 \
     } n                             \
-
-#define STDX_DEFINE_API(n, ...)         \
-    typedef struct _stdx_##n##_api {    \
-        __VA_ARGS__                     \
-    } _stdx_##n##_api                   \
 
 #ifdef DLL_EXPORT
     #ifdef _MSC_VER
