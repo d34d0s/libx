@@ -6,14 +6,14 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-typedef const char* cstr;
+typedef const char*         cstr;
 
-typedef float			f32;
-typedef double			f64;
+typedef float			    f32;
+typedef double			    f64;
 
-typedef signed char		i8;
+typedef signed char		    i8;
 typedef signed short		i16;
-typedef signed int 		i32;
+typedef signed int 		    i32;
 typedef signed long long 	i64;
 
 typedef unsigned char		u8;
@@ -25,6 +25,9 @@ typedef unsigned long long 	u64;
 
 #define STDX_TRUE   1
 #define STDX_FALSE  0
+
+#define STDX_IP2(x) ((x & (x - 1)) == 0)
+#define STDX_ALIGN(p, a) (((p) + ((a) - 1)) & ~((a) - 1))
 
 #define STDX_DEFAULT(type)              (type){0}
 #define STDX_LITERAL(type, value)       (type){value}
@@ -41,6 +44,33 @@ typedef unsigned long long 	u64;
 #define STDX_FORJ(start, stop, step) for (u32 j = start; j < stop; j += step)
 #define STDX_FORK(start, stop, step) for (u32 k = start; k < stop; k += step)
 #define STDX_FOR(type, iter, start, stop, step) for (type iter = start; iter < stop; iter += step)
+
+#define STDX_FNPTR(t, n, ...) t (*n)(__VA_ARGS__)
+
+#define STDX_IMPLEMENT(n, ...)      \
+    void n##_impl(void) {           \
+        __VA_ARGS__                 \
+    }                               \
+
+#define STDX_DEFINE_ENUM(n, ...)    \
+    typedef enum n {                \
+        __VA_ARGS__                 \
+    } n                             \
+
+#define STDX_DEFINE_UNION(n, ...)   \
+    typedef union n {               \
+        __VA_ARGS__                 \
+    } n                             \
+
+#define STDX_DEFINE_STRUCT(n, ...)  \
+    typedef struct n {              \
+        __VA_ARGS__                 \
+    } n                             \
+
+#define STDX_DEFINE_API(n, ...)         \
+    typedef struct _stdx_##n##_api {    \
+        __VA_ARGS__                     \
+    } _stdx_##n##_api                   \
 
 #ifdef DLL_EXPORT
     #ifdef _MSC_VER

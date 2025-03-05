@@ -1,5 +1,5 @@
-#include "../../stdlibx/include/stdx_memory.h"
-#include "../../stdlibx/include/stdx_structs.h"
+#include "../stdlibx/include/stdx_memory.h"
+#include "../stdlibx/include/stdx_structs.h"
 
 void main() {
 	stdx_init_memory();
@@ -29,7 +29,7 @@ void main() {
 
 	verts = structs_api->resize_array(verts, 6);
 	
-	// data persists after resizing
+	// data persists after resizin g
 	STDX_FOR(u32, a, 0, vhead.count+1, 1) { printf("verts[%d] = %0.1f\n", a, verts[a]); }
 
 	// array headers are automatically updated when using the API.

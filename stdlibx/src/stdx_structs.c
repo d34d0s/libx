@@ -38,13 +38,20 @@ void _pull_array_impl(void* array, u32 index, void* outvalue) {
 	
 	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
 	if (index >= head[STDX_ARRAY_MAX_FIELD] || (head[STDX_ARRAY_COUNT_FIELD] - 1) < 0) return;
-
-	u32 offset = (head[STDX_ARRAY_STRIDE_FIELD] * index);
+    
+    u32 stride = head[STDX_ARRAY_STRIDE_FIELD];
+    u32 count = head[STDX_ARRAY_COUNT_FIELD];
+	u32 offset = (stride * index);
 
 	void* slot = ((u8*)array + offset);
-    memcpy(outvalue, slot, head[STDX_ARRAY_STRIDE_FIELD]);
-
-    memset(slot, 0, head[STDX_ARRAY_STRIDE_FIELD]);
+    memcpy(outvalue, slot, stride);
+    
+    // shift array down
+    if (index < count - 1) {
+        memmove(slot, (u8*)slot + stride, stride * (count - index - 1));
+        memset((u8*)slot + stride * (count - index - 1), 0, stride);  // zero the last slot
+    }
+    
     head[STDX_ARRAY_COUNT_FIELD]--;
 }
 

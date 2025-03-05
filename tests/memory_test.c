@@ -1,4 +1,4 @@
-#include "../../stdlibx/include/stdx_memory.h"
+#include "../stdlibx/include/stdx_memory.h"
 
 void main() {
     stdx_init_memory();

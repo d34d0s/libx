@@ -2,9 +2,6 @@
 
 #include "stdx_def.h"
 
-#define IP2(x) ((x & (x - 1)) == 0)
-#define ALIGN(p, a) (((p) + ((a) - 1)) & ~((a) - 1))
-
 /* ---------------- LINEAR ALLOCATOR ---------------- */
 typedef struct Linear_Allocator {
     void* data;

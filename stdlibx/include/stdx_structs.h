@@ -52,8 +52,7 @@ typedef struct _stdx_structs_api {
 
     /**
      * `pop_array` is used to ensure a value is returned from the last occupied slot in an array BASED ON THE CURRENT NUMBER OF ELEMENTS within the array.
-     * Calling `pop_array` DOES NOT shift/reorder elements in the array, instead the value at the popped index is set to 0, maintaining the integrity of the structure of data within the array.
-     * Be careful using `pop_array` after `n` calls to `put_array` as `push_array` will start at index `n - 1` in an array, and fail to return inserted values.
+     * Be careful using `pop_array` after `n` calls to `put_array` as `pop_array` will start at index `n - 1` in an array, and fail to return inserted values.
      */
     void (*pop_array)(void* array, void* outvalue);
     
@@ -68,8 +67,8 @@ typedef struct _stdx_structs_api {
     void (*put_array)(void* array, u32 index, void* invalue);
     
     /**
-     * `pull_array` is used to clear and return a value from a specific index in an array
-     * Calling `pull_array` DOES NOT shift/reorder elements in the array, instead the value at the removed index is set to 0, maintaining the integrity of the structure of data within the array.
+     * `pull_array` is used to return a value from a specific index in an array
+     * Calling `pull_array` DOES shift/reorder elements in the array, instead the value at the removed index is set to 0, maintaining the integrity of the structure of data within the array.
      */
     void (*pull_array)(void* array, u32 index, void* outvalue);
 

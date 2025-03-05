@@ -13,7 +13,7 @@ void _dealloc_impl(void* ptr) {
 }
 
 void* _alloc_impl(u64 size, u64 align) {
-	if (!size || !IP2(align)) return NULL;	// error: value error!
+	if (!size || !STDX_IP2(align)) return NULL;	// error: value error!
 
 	// allocate 2 extra bytes for pointer difference
 	// allocate align-1 extra bytes for pointer alignment
@@ -21,7 +21,7 @@ void* _alloc_impl(u64 size, u64 align) {
 	if (!optr) return NULL;	// error: out of memory!
 
 	// move 2 bytes from optr align, zero, and return that address
-	void* aptr = memset((void*)ALIGN((u64)((u16*)optr + 1), align), 0, size);
+	void* aptr = memset((void*)STDX_ALIGN((u64)((u16*)optr + 1), align), 0, size);
 
 	// store pointer diff/offset at the head of the aligned pointer;
 	*((u16*)aptr - 1) = (u16)((u64)aptr - (u64)optr);
@@ -31,7 +31,7 @@ void* _alloc_impl(u64 size, u64 align) {
 
 void* _realloc_impl(void* ptr, u64 size, u64 align) {
 	if (!ptr) return memory_api->alloc(size, align);	// error: null ptr!
-	if (!size || !IP2(align)) return NULL;	// error: value error!
+	if (!size || !STDX_IP2(align)) return NULL;	// error: value error!
 	
 	// retrieve the pointer difference stored before the ptr
 	u16 diff = *((u16*)ptr - 1);
@@ -45,7 +45,7 @@ void* _realloc_impl(void* ptr, u64 size, u64 align) {
 	if (!nptr) return NULL;
 
 	// move 2 bytes from optr align, and assign that address
-	void* aptr = (void*)ALIGN((u64)((u16*)nptr + 1), align);
+	void* aptr = (void*)STDX_ALIGN((u64)((u16*)nptr + 1), align);
 
 	// store pointer diff/offset at the head of the aligned pointer;
 	*((u16*)aptr - 1) = (u16)((u64)aptr - (u64)nptr);
@@ -57,7 +57,7 @@ void* _realloc_impl(void* ptr, u64 size, u64 align) {
 
 /* ---------------- LINEAR ALLOCATOR ---------------- */
 Linear_Allocator* _create_linear_allocator_impl(u64 max, u64 align) {
-	if (!max || !IP2(align)) return NULL;	// error: value error!
+	if (!max || !STDX_IP2(align)) return NULL;	// error: value error!
 	
 	Linear_Allocator* allocator = (Linear_Allocator*)memory_api->alloc(sizeof(Linear_Allocator), align);
 	if (!allocator) return NULL;	// error: out of memory!
@@ -78,7 +78,7 @@ void _linear_reset_impl(Linear_Allocator* allocator) {
 void* _linear_alloc_impl(Linear_Allocator* allocator, u64 size, u64 align) {
 	if (!allocator || !allocator->data) return NULL;	// error: null ptr!
 
-	u64 aoffset = ALIGN(allocator->offset, align);
+	u64 aoffset = STDX_ALIGN(allocator->offset, align);
 	if (aoffset + size > allocator->max) return NULL;	// error: out of memory!
 
 	allocator->offset = aoffset + size;
@@ -97,7 +97,7 @@ void _destroy_linear_allocator_impl(Linear_Allocator* allocator) {
 
 /* ---------------- ARENA ALLOCATOR ---------------- */
 Arena_Allocator* _create_arena_allocator_impl(Arena_Allocator* allocator, u64 max, u64 align) {
-    if (!max) return NULL; // error: invalid size
+    if (!max || !STDX_IP2(align)) return NULL; // error: invalid size
 
     Arena_Allocator* new_arena = (Arena_Allocator*)memory_api->alloc(sizeof(Arena_Allocator), align);
     if (!new_arena) return NULL; // error: out of memory
@@ -136,7 +136,7 @@ void* _arena_alloc_impl(Arena_Allocator* allocator, u64 size, u64 align) {
 	// search for a node with enough space
     Arena_Allocator* node = allocator;
     while (node) {
-        u64 aoffset = ALIGN(node->offset, align);
+        u64 aoffset = STDX_ALIGN(node->offset, align);
         if (aoffset + size <= node->max) {
             void* ptr = (u8*)node->data + aoffset;
             node->offset = aoffset + size;
