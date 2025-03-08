@@ -1,0 +1,25 @@
+{
+    "c-instance": "GCC",
+    "c-targets": {
+        "stdlibx": {
+            "c-defines": ["DLL_EXPORT"],
+            "src-dirs": ["../stdlibx/src"],
+            "inc-dirs": ["../stdlibx/include"],
+            
+            "out-type": "dll",
+            "out-name": "stdlibx",
+            "out-dir": "../bin"
+        },
+        "tests": {
+            "r3make": {
+                "flags": ["buildeach"]
+            },
+            "src-dirs": ["tests"],
+            "inc-dirs": ["../stdlibx/include"],
+            "lib-links": {"stdlibx": "../bin"},
+            "out-type": "exe",
+            "out-name": "test",
+            "out-dir": "../bin"
+        }
+    }
+}
