@@ -1,33 +1,45 @@
 #pragma once
 
 #include "stdx_def.h"
+#include "stdx_memory.h"
+#include "stdx_structs.h"
 
 #define COMPONENT_MAX   (1 << 5)
 #define ENTITY_MAX      ((1 << 16) - 1)
 
-typedef u32 Entity;
-typedef void* Component;
-typedef u8 Component_Id;
-
 typedef struct _stdlibx_ecs_api {
     struct entity_manager {
-        Entity* queue;
-        Entity* mask;
+        u32* queue;
+        u32* mask;
         u32 count;
     } entity_manager;
 
     struct component_manager {
-        Component** components;
+        void** component_storage;
+        void** add_component_fptr;
+        void** rem_component_fptr;
+        void** get_component_fptr;
         u32 count;
     } component_manager;
 
-    Entity (*create_entity)(void);
-    void (*destroy_entity)(Entity entity);
+    u32 (*create_entity)(void);
+    void (*destroy_entity)(u32 entity);
 
-    u8 (*register_component)(Component_Id id, u64 stride);
-    u8 (*add_component)(Component_Id id, Entity entity);
-    u8 (*rem_component)(Component_Id id, Entity entity);
-    Component (*get_component)(Component_Id id, Entity entity);
+    u8 (*register_component)(u8 id,
+        void* storage, void* add_func,
+        void* rem_func, void* get_func);
+    u8 (*unregister_component)(u8 id);
+    
+    /**
+     * The `get_entities` function returns an array of all entities that have the specified component attached.
+     * `get_entities` iterates over all active entities (n), thus the size of the returned array is: `n * sizeof(u32)`.
+     * Any entities that do not have this component will be pushed onto the returned array as the value expanded from the `ENTITY_MAX` directive.
+     * Note: The caller of `get_entities` must call `structs_api->destroy_array()` on the return value to ensure no memory is leaked.
+     */
+    u32* (*get_entities)(u8 id);
+    u8 (*add_component)(u8 id, u32 entity);
+    u8 (*rem_component)(u8 id, u32 entity);
+    u8 (*get_component)(u8 id, u32 entity, void* component);
     
 } _stdlibx_ecs_api;
 extern _stdlibx_ecs_api* ecs_api;

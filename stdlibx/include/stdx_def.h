@@ -27,6 +27,9 @@ typedef unsigned long long 	u64;
 #define STDX_TRUE   1
 #define STDX_FALSE  0
 
+#define STDX_HEAP_ARR(t, a) t* n
+#define STDX_STACK_ARR(t, a, m) t* a[m]
+
 #define STDX_IP2(x) ((x & (x - 1)) == 0)
 #define STDX_ALIGN(p, a) (((p) + ((a) - 1)) & ~((a) - 1))
 

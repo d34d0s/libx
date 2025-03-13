@@ -2,6 +2,11 @@
     "c-instance": "GCC",
     "c-targets": {
         "stdlibx": {
+            "r3make": {
+                "post-build": {
+                    "nofiles": null
+                }
+            },
             "c-defines": ["DLL_EXPORT"],
             "src-dirs": ["../stdlibx/src"],
             "inc-dirs": ["../stdlibx/include"],
@@ -12,13 +17,16 @@
         },
         "tests": {
             "r3make": {
-                "flags": ["buildeach"]
+                "flags": ["buildeach"],
+                "post-build": {
+                    "nofiles": null
+                }
             },
-            "src-dirs": ["tests"],
+            "src-dirs": ["../tests"],
             "inc-dirs": ["../stdlibx/include"],
             "lib-links": {"stdlibx": "../bin"},
             "out-type": "exe",
-            "out-name": "test",
+            "out-name": null,
             "out-dir": "../bin"
         }
     }
