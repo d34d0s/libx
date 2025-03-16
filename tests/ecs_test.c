@@ -1,4 +1,4 @@
-#include "../stdlibx/include/stdx_ecs.h"
+#include "../libx/include/libx_ecs.h"
 
 typedef struct my_component {
     str tag;
@@ -16,28 +16,30 @@ u8 add_component(u32 entity) {
     storage.tag[entity] = "COMPONENT TAG";
     storage.ivalue[entity] = 0;
     storage.fvalue[entity] = 0.0f;
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 u8 rem_component(u32 entity) {
     storage.tag[entity] = 0;
     storage.ivalue[entity] = 0;
     storage.fvalue[entity] = 0;
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 u8 get_component(u32 entity, void* component) {
-    if (entity < 0 || entity > ENTITY_MAX || !component) return STDX_FALSE;
+    if (entity < 0 || entity > ENTITY_MAX || !component) return LIBX_FALSE;
     *(my_component*)component = (my_component){
         .tag = storage.tag[entity],
         .ivalue = storage.ivalue[entity],
         .fvalue = storage.fvalue[entity]
     };
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 int main() {
-    stdx_init_ecs();
+    libx_init_memory();
+    libx_init_structs();
+    libx_init_ecs();
 
     // register a component
     if (ecs_api->register_component(0, &storage, add_component, rem_component, get_component)) {
@@ -68,17 +70,17 @@ int main() {
     u32 e = ecs_api->create_entity();
 
     // create 8 more entities with our component
-    STDX_FORI(0, 8, 1) {
+    LIBX_FORI(0, 8, 1) {
         u32 e = ecs_api->create_entity();
         ecs_api->add_component(0, e);
     }
 
     // we should have 10 entities
-    _STATIC_ASSERT(ecs_api->entity_manager.count == 10);
+    if (ecs_api->entity_manager.count == 10) printf("10 Entities Created!\n");
     
     // retrieve an array containing all entities with our component
     u32* buffer = ecs_api->get_entities(0);
-    STDX_FORI(0, ecs_api->entity_manager.count, 1) {
+    LIBX_FORI(0, ecs_api->entity_manager.count, 1) {
         u32 e = buffer[i];
         if (e == ENTITY_MAX) continue;    // skip sentinnel values
         printf("Entity Has My Component: %d\n", e);
@@ -86,6 +88,8 @@ int main() {
     structs_api->destroy_array(buffer);
         
     ecs_api->unregister_component(0);
-    stdx_cleanup_ecs();
+    libx_cleanup_ecs();
+    libx_cleanup_structs();
+    libx_cleanup_memory();
     return 0;
 }

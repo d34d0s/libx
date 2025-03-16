@@ -1,8 +1,8 @@
 #pragma once
 
-#include "stdx_def.h"
-#include "stdx_memory.h"
-#include "stdx_structs.h"
+#include "libx_def.h"
+#include "libx_memory.h"
+#include "libx_structs.h"
 
 #define COMPONENT_MAX   (1 << 5)
 #define ENTITY_MAX      ((1 << 16) - 1)
@@ -24,7 +24,7 @@ typedef struct _stdlibx_ecs_api {
 
     u32 (*create_entity)(void);
     void (*destroy_entity)(u32 entity);
-
+    
     u8 (*register_component)(u8 id,
         void* storage, void* add_func,
         void* rem_func, void* get_func);
@@ -44,5 +44,5 @@ typedef struct _stdlibx_ecs_api {
 } _stdlibx_ecs_api;
 extern _stdlibx_ecs_api* ecs_api;
 
-STDX_API u8 stdx_init_ecs(void);
-STDX_API void stdx_cleanup_ecs(void);
+LIBX_API u8 libx_init_ecs(void);
+LIBX_API void libx_cleanup_ecs(void);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdx_def.h"
+#include "libx_def.h"
 
 /* ---------------- LINEAR ALLOCATOR ---------------- */
 typedef struct Linear_Allocator {
@@ -30,7 +30,7 @@ typedef struct Arena_Allocator {
 /* ---------------- RING ALLOCATOR ---------------- */
 
 
-typedef struct _stdx_memory_api {
+typedef struct _libx_memory_api {
     void (*dealloc)(void* ptr);
     void* (*alloc)(u64 size, u64 align);
     void* (*realloc)(void* ptr, u64 size, u64 align);
@@ -45,8 +45,8 @@ typedef struct _stdx_memory_api {
     void (*arena_reset)(Arena_Allocator* allocator);
     void (*destroy_arena_allocator)(Arena_Allocator* allocator);
     void (*collapse_arena_allocator)(Arena_Allocator* allocator);
-} _stdx_memory_api;
-extern _stdx_memory_api* memory_api;
+} _libx_memory_api;
+extern _libx_memory_api* memory_api;
 
-STDX_API u8 stdx_init_memory(void);
-STDX_API void stdx_cleanup_memory(void);
+LIBX_API u8 libx_init_memory(void);
+LIBX_API void libx_cleanup_memory(void);

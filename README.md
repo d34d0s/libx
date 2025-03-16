@@ -1,4 +1,4 @@
-# stdlibx
-a custom, modern featureset for extending the C standard library. 
+# libx
+a library for building things in C.  
 
-> Note: stdlibx targets x64 Windows machines.
+> Note: libx targets x64 Windows machines.

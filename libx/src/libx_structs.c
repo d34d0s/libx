@@ -1,46 +1,45 @@
-#include "../include/stdx_structs.h"
+#include "../include/libx_memory.h"
+#include "../include/libx_structs.h"
 
-#include "stdx_memory.h"
-
-_stdx_structs_api* structs_api = NULL;
+_libx_structs_api* structs_api = NULL;
 
 /* ---------------- ARRAY ---------------- */
-#define STDX_ARRAY_HEAD_SIZE (sizeof(u32) * 4)
+#define LIBX_ARRAY_HEAD_SIZE (sizeof(u32) * 4)
 
 void* _create_array_impl(u32 stride, u32 max) {
-    u32* head = (u32*)memory_api->alloc(STDX_ARRAY_HEAD_SIZE + (stride * max), 16);
+    u32* head = (u32*)memory_api->alloc(LIBX_ARRAY_HEAD_SIZE + (stride * max), 16);
     if (!head) return NULL; // error: out of memory!
 
-    head[STDX_ARRAY_SIZE_FIELD] = STDX_ARRAY_HEAD_SIZE + (stride * max);
-    head[STDX_ARRAY_STRIDE_FIELD] = stride;
-    head[STDX_ARRAY_COUNT_FIELD] = 0;
-    head[STDX_ARRAY_MAX_FIELD] = max;
+    head[LIBX_ARRAY_SIZE_FIELD] = LIBX_ARRAY_HEAD_SIZE + (stride * max);
+    head[LIBX_ARRAY_STRIDE_FIELD] = stride;
+    head[LIBX_ARRAY_COUNT_FIELD] = 0;
+    head[LIBX_ARRAY_MAX_FIELD] = max;
 
-    return (void*)((u8*)head + STDX_ARRAY_HEAD_SIZE);
+    return (void*)((u8*)head + LIBX_ARRAY_HEAD_SIZE);
 }
 
 void _put_array_impl(void* array, u32 index, void* invalue) {
 	if (!array || !invalue || index < 0) return;
 	
-	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
-	if (index >= head[STDX_ARRAY_MAX_FIELD] || (head[STDX_ARRAY_COUNT_FIELD] + 1) > head[STDX_ARRAY_MAX_FIELD]) return;
+	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
+	if (index >= head[LIBX_ARRAY_MAX_FIELD] || (head[LIBX_ARRAY_COUNT_FIELD] + 1) > head[LIBX_ARRAY_MAX_FIELD]) return;
 
-	u32 offset = (head[STDX_ARRAY_STRIDE_FIELD] * index);
+	u32 offset = (head[LIBX_ARRAY_STRIDE_FIELD] * index);
 
 	void* slot = ((u8*)array + offset);
-    memcpy(slot, invalue, head[STDX_ARRAY_STRIDE_FIELD]);
+    memcpy(slot, invalue, head[LIBX_ARRAY_STRIDE_FIELD]);
 
-	head[STDX_ARRAY_COUNT_FIELD]++;
+	head[LIBX_ARRAY_COUNT_FIELD]++;
 }
 
 void _pull_array_impl(void* array, u32 index, void* outvalue) {
     if (!array || outvalue == NULL) return;
 	
-	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
-	if (index >= head[STDX_ARRAY_MAX_FIELD] || (head[STDX_ARRAY_COUNT_FIELD] - 1) < 0) return;
+	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
+	if (index >= head[LIBX_ARRAY_MAX_FIELD] || (head[LIBX_ARRAY_COUNT_FIELD] - 1) < 0) return;
     
-    u32 stride = head[STDX_ARRAY_STRIDE_FIELD];
-    u32 count = head[STDX_ARRAY_COUNT_FIELD];
+    u32 stride = head[LIBX_ARRAY_STRIDE_FIELD];
+    u32 count = head[LIBX_ARRAY_COUNT_FIELD];
 	u32 offset = (stride * index);
 
 	void* slot = ((u8*)array + offset);
@@ -52,14 +51,14 @@ void _pull_array_impl(void* array, u32 index, void* outvalue) {
         memset((u8*)slot + stride * (count - index - 1), 0, stride);  // zero the last slot
     }
     
-    head[STDX_ARRAY_COUNT_FIELD]--;
+    head[LIBX_ARRAY_COUNT_FIELD]--;
 }
 
 void _push_array_impl(void* array, void* invalue) {
     if (!array || !invalue) return;
 	
-	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
-    u32 index = head[STDX_ARRAY_COUNT_FIELD];
+	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
+    u32 index = head[LIBX_ARRAY_COUNT_FIELD];
 
     structs_api->put_array(array, index, invalue);
 }
@@ -67,10 +66,10 @@ void _push_array_impl(void* array, void* invalue) {
 void _pop_array_impl(void* array, void* outvalue) {
     if (!array || outvalue == NULL) return;
 	
-	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
-    if (!head[STDX_ARRAY_COUNT_FIELD]) return;
+	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
+    if (!head[LIBX_ARRAY_COUNT_FIELD]) return;
 
-    u32 index = (head[STDX_ARRAY_COUNT_FIELD] - 1);
+    u32 index = (head[LIBX_ARRAY_COUNT_FIELD] - 1);
 
     structs_api->pull_array(array, index, outvalue);
 }
@@ -78,44 +77,44 @@ void _pop_array_impl(void* array, void* outvalue) {
 void* _resize_array_impl(void* array, u32 max) {
     if (!array || !max) array;
 
-	u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
+	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
     
-    u32 count = head[STDX_ARRAY_COUNT_FIELD];
-    u32 stride = head[STDX_ARRAY_STRIDE_FIELD];
-    u32 newsize = STDX_ARRAY_HEAD_SIZE + (stride * max);
+    u32 count = head[LIBX_ARRAY_COUNT_FIELD];
+    u32 stride = head[LIBX_ARRAY_STRIDE_FIELD];
+    u32 newsize = LIBX_ARRAY_HEAD_SIZE + (stride * max);
 
     u32* newhead = (u32*)memory_api->realloc(head, newsize, 16);
     if (!newhead) return array;
 
-    newhead[STDX_ARRAY_SIZE_FIELD] = STDX_ARRAY_HEAD_SIZE + (stride * max);
-    newhead[STDX_ARRAY_STRIDE_FIELD] = stride;
-    newhead[STDX_ARRAY_COUNT_FIELD] = count;
-    newhead[STDX_ARRAY_MAX_FIELD] = max;
+    newhead[LIBX_ARRAY_SIZE_FIELD] = LIBX_ARRAY_HEAD_SIZE + (stride * max);
+    newhead[LIBX_ARRAY_STRIDE_FIELD] = stride;
+    newhead[LIBX_ARRAY_COUNT_FIELD] = count;
+    newhead[LIBX_ARRAY_MAX_FIELD] = max;
 
-    return (void*)((u8*)newhead + STDX_ARRAY_HEAD_SIZE);
+    return (void*)((u8*)newhead + LIBX_ARRAY_HEAD_SIZE);
 }
 
 void _destroy_array_impl(void* array) {
-    memory_api->dealloc((void*)((u8*)array - STDX_ARRAY_HEAD_SIZE));
+    memory_api->dealloc((void*)((u8*)array - LIBX_ARRAY_HEAD_SIZE));
 }
 
 Array_Head _get_array_head_impl(void* array) {
     Array_Head arrhead = {0, 0, 0, 0};
     if (!array) return arrhead; // error: null ptr!
 
-    u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
+    u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
     
-    arrhead.size = head[STDX_ARRAY_SIZE_FIELD];
-    arrhead.stride = head[STDX_ARRAY_STRIDE_FIELD];
-    arrhead.count = head[STDX_ARRAY_COUNT_FIELD];
-    arrhead.max = head[STDX_ARRAY_MAX_FIELD];
+    arrhead.size = head[LIBX_ARRAY_SIZE_FIELD];
+    arrhead.stride = head[LIBX_ARRAY_STRIDE_FIELD];
+    arrhead.count = head[LIBX_ARRAY_COUNT_FIELD];
+    arrhead.max = head[LIBX_ARRAY_MAX_FIELD];
 
     return arrhead;
 }
 
 void _set_array_head_impl(void* array, u32 field, u32 value) {
-    if (!array || field >= STDX_ARRAY_FIELDS) return;
-    u32* head = (u32*)((u8*)array - STDX_ARRAY_HEAD_SIZE);
+    if (!array || field >= LIBX_ARRAY_FIELDS) return;
+    u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
     head[field] = value;
 }
 /* ---------------- ARRAY ---------------- */
@@ -201,7 +200,7 @@ i32 _probe_key_hash_array(Hash_Array* array, cstr key) {
     u32 index = _fnv1a_hash(key) % meta.max;
     u32 start = index;
 
-    STDX_FORI(0, meta.max, 1) {
+    LIBX_FORI(0, meta.max, 1) {
         if (array->map[index].key && strcmp(array->map[index].key, key) == 0) break;
         else {
             index = (index + 1) % meta.max;
@@ -243,12 +242,12 @@ Hash_Array* _create_hash_array_impl(u32 max) {
 }
 
 u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
-    if (!array || !key || !value) return STDX_FALSE;  // error: null ptr!
+    if (!array || !key || !value) return LIBX_FALSE;  // error: null ptr!
 
     Array_Head meta = structs_api->get_array_head(array->map);
     if (meta.count > (u32)(meta.max * 0.7)) {
         Key_Value* temp = structs_api->create_array(sizeof(Key_Value), meta.max * 2);
-        if (!temp) return STDX_FALSE;  // error: out of memory!
+        if (!temp) return LIBX_FALSE;  // error: out of memory!
 
         memcpy(temp, array->map, meta.max * meta.stride);
         structs_api->destroy_array(array->map);
@@ -261,11 +260,11 @@ u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
     structs_api->put_array(array->map, index, &(Key_Value){ .value = value, .key = strdup(key)});
     
     array->meta = structs_api->get_array_head(array->map);
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 void* _get_hash_array_impl(Hash_Array* array, cstr key) {
-    if (!array || !key) return STDX_FALSE;  // error: null ptr!
+    if (!array || !key) return LIBX_FALSE;  // error: null ptr!
     
     i32 index = _probe_key_hash_array(array, key);
     if (index == -1) return NULL;
@@ -274,15 +273,15 @@ void* _get_hash_array_impl(Hash_Array* array, cstr key) {
 }
 
 u8 _pull_hash_array_impl(Hash_Array* array, cstr key, Key_Value* out) {
-    if (!array || !key) return STDX_FALSE;  // error: null ptr!
+    if (!array || !key) return LIBX_FALSE;  // error: null ptr!
 
     i32 index = _probe_key_hash_array(array, key);
-    if (index == -1) return STDX_FALSE;
+    if (index == -1) return LIBX_FALSE;
 
     structs_api->pull_array(array->map, index, out);
 
     array->meta = structs_api->get_array_head(array->map);
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 void _destroy_hash_array_impl(Hash_Array* array) {
@@ -294,8 +293,8 @@ void _destroy_hash_array_impl(Hash_Array* array) {
 
 
 /* ---------------- API ---------------- */
-u8 stdx_init_structs(void) {
-    structs_api = (_stdx_structs_api*)memory_api->alloc(sizeof(_stdx_structs_api), 16);
+u8 libx_init_structs(void) {
+    structs_api = (_libx_structs_api*)memory_api->alloc(sizeof(_libx_structs_api), 16);
     if (!structs_api) return 0;
 
     structs_api->create_array = _create_array_impl;
@@ -320,7 +319,7 @@ u8 stdx_init_structs(void) {
     return 1;
 }
 
-void stdx_cleanup_structs(void) {
+void libx_cleanup_structs(void) {
     memory_api->dealloc(structs_api);
 }
 /* ---------------- API ---------------- */

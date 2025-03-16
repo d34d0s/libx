@@ -1,23 +1,23 @@
-#include "../include/stdx_fio.h"
-#include "../include/stdx_memory.h"
+#include "../include/libx_fio.h"
+#include "../include/libx_memory.h"
 
-_stdx_fileio_api* fileio_api = NULL;
+_libx_fileio_api* fileio_api = NULL;
 
 u8 _exists_impl(cstr path) {
     FILE* file = fopen(path, "rb");
-    if (!file) return STDX_FALSE;
+    if (!file) return LIBX_FALSE;
     fclose(file);
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 u8 _copy_impl(cstr src, cstr dest, u64 size) {
     FILE* srcf = fopen(src, "rb");
-    if (!srcf) return STDX_FALSE;   // error: file not found!
+    if (!srcf) return LIBX_FALSE;   // error: file not found!
     
     FILE* destf = fopen(dest, "wb");
     if (!destf) {
         fclose(srcf);
-        return STDX_FALSE;  // error: file not found!
+        return LIBX_FALSE;  // error: file not found!
     }
 
     u64 read = 0;
@@ -27,7 +27,7 @@ u8 _copy_impl(cstr src, cstr dest, u64 size) {
     
     fclose(srcf);
     fclose(destf);
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 u64 _size_impl(cstr path) {
@@ -44,6 +44,8 @@ u64 _size_impl(cstr path) {
 str _read_impl(cstr path, u64 size) {
     FILE* file = fopen(path, "rb");
     if (!file) return NULL; // error: file not found!
+
+    if (!size) size = fileio_api->size(path);
 
     str out = memory_api->alloc(size+1, 16);
     if (!out) return NULL;  // error: out of memory!
@@ -63,56 +65,56 @@ str _read_impl(cstr path, u64 size) {
 
 u8 _readb_impl(cstr path, u64 size, void* out) {
     FILE* file = fopen(path, "rb");
-    if (!file) return STDX_FALSE; // error: file not found!
+    if (!file) return LIBX_FALSE; // error: file not found!
 
     u64 read = 0;
     read = fread(out, size, 1, file);
     if (read != size) {
         fclose(file);
-        return STDX_FALSE;    // error: failed to fully read data!
+        return LIBX_FALSE;    // error: failed to fully read data!
     }
     
     fclose(file);
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 u8 _remove_impl(cstr path) {
-    if (remove(path) != STDX_FALSE) return STDX_FALSE;  // error: failed to delete file!
-    return STDX_TRUE;
+    if (remove(path) != LIBX_FALSE) return LIBX_FALSE;  // error: failed to delete file!
+    return LIBX_TRUE;
 }
 
 u8 _write_impl(cstr path, cstr lines, u8 preserve) {
     FILE* file = fopen(path, preserve ? "ab" : "wb");
-    if (!file) return STDX_FALSE;   // error: failed to write to file!
+    if (!file) return LIBX_FALSE;   // error: failed to write to file!
 
     u64 size = strlen(lines);
     if (!size) {
         fclose(file);
-        return STDX_FALSE;  // error: failed to get size of `lines`!
+        return LIBX_FALSE;  // error: failed to get size of `lines`!
     }
 
     u64 written = fwrite(lines, sizeof(char), size, file);
     if (written != size) {
         fclose(file);
-        return STDX_FALSE;  // error: failed to write all lines!
+        return LIBX_FALSE;  // error: failed to write all lines!
     }
     
     fclose(file);
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 u8 _writeb_impl(cstr path, u64 size, u8 preserve, void* ptr) {
     FILE* file = fopen(path, preserve ? "ab" : "wb");
-    if (!file) return STDX_FALSE;   // error: failed to write to file!
+    if (!file) return LIBX_FALSE;   // error: failed to write to file!
 
     u64 written = fwrite(ptr, size, 1, file);
     if (written != size) {
         fclose(file);
-        return STDX_FALSE;  // error: failed to write all lines!
+        return LIBX_FALSE;  // error: failed to write all lines!
     }
     
     fclose(file);
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 u8 _append_impl(cstr path, cstr lines, u8 newline) {
@@ -129,10 +131,10 @@ u8 _appendb_impl(cstr path, u64 size, u8 newline, void* ptr) {
 
 u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
     FILE* file = fopen(path, "rb");
-    if (!file) return STDX_FALSE;    // error: failed to open file!
+    if (!file) return LIBX_FALSE;    // error: failed to open file!
 
     str buffer = memory_api->alloc(lines, 16);
-    if (!buffer) return STDX_FALSE; // error: failed to allocate temporary buffer!
+    if (!buffer) return LIBX_FALSE; // error: failed to allocate temporary buffer!
     
     do callback((cstr)buffer);
     while(fgets(buffer, lines ,file));
@@ -140,13 +142,13 @@ u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
     memory_api->dealloc(buffer);
     fclose(file);
 
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
 
-u8 stdx_init_fileio(void) {
-    fileio_api  = memory_api->alloc(sizeof(_stdx_fileio_api), 16);
-    if (!fileio_api) return STDX_FALSE; // error: out of memory!
+u8 libx_init_fileio(void) {
+    fileio_api  = memory_api->alloc(sizeof(_libx_fileio_api), 16);
+    if (!fileio_api) return LIBX_FALSE; // error: out of memory!
 
     fileio_api->exists = _exists_impl;
     fileio_api->copy = _copy_impl;
@@ -160,9 +162,9 @@ u8 stdx_init_fileio(void) {
     fileio_api->appendb = _appendb_impl;
     fileio_api->process = _process_impl;
 
-    return STDX_TRUE;
+    return LIBX_TRUE;
 }
 
-void stdx_cleanup_fileio(void) {
+void libx_cleanup_fileio(void) {
     memory_api->dealloc(fileio_api);
 }

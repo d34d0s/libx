@@ -1,20 +1,20 @@
-#include "../stdlibx/include/stdx_memory.h"
-#include "../stdlibx/include/stdx_structs.h"
+#include "../libx/include/libx_memory.h"
+#include "../libx/include/libx_structs.h"
 
 void main() {
-	stdx_init_memory();
-	stdx_init_structs();
+	libx_init_memory();
+	libx_init_structs();
 
 	f32* verts = structs_api->create_array(sizeof(f32), 3);
 
-	structs_api->push_array(verts, STDX_LITERAL_PTR(f32, 23));
-	structs_api->push_array(verts, STDX_LITERAL_PTR(f32, 420));
-	structs_api->push_array(verts, STDX_LITERAL_PTR(f32, 123321));
+	structs_api->push_array(verts, LIBX_LITERAL_PTR(f32, 23));
+	structs_api->push_array(verts, LIBX_LITERAL_PTR(f32, 420));
+	structs_api->push_array(verts, LIBX_LITERAL_PTR(f32, 123321));
 
-	STDX_FORI(0, 3, 1) { printf("verts[%d] = %0.1f\n", i, verts[i]); }
+	LIBX_FORI(0, 3, 1) { printf("verts[%d] = %0.1f\n", i, verts[i]); }
 
 	// never happens as cap has been reached, index 2 is not overwritten.
-	structs_api->push_array(verts, STDX_LITERAL_PTR(f32, 23));
+	structs_api->push_array(verts, LIBX_LITERAL_PTR(f32, 23));
 	printf("verts[2] = %0.1f\n", verts[2]);
 
 	f32 out_vert;
@@ -30,7 +30,7 @@ void main() {
 	verts = structs_api->resize_array(verts, 6);
 	
 	// data persists after resizin g
-	STDX_FOR(u32, a, 0, vhead.count+1, 1) { printf("verts[%d] = %0.1f\n", a, verts[a]); }
+	LIBX_FOR(u32, a, 0, vhead.count+1, 1) { printf("verts[%d] = %0.1f\n", a, verts[a]); }
 
 	// array headers are automatically updated when using the API.
 	vhead = structs_api->get_array_head(verts);
@@ -49,7 +49,7 @@ void main() {
 	structs_api->put_array(larr2->array, 1, &(f32){100.001});
 	
 	// link 3 new arrays in front of larr2
-	Linked_Array* larr3 = structs_api->create_linked_array(larr, sizeof(f32), 3);
+	Linked_Array* larlibx = structs_api->create_linked_array(larr, sizeof(f32), 3);
 	Linked_Array* larr4 = structs_api->create_linked_array(larr, sizeof(f32), 4);
 	Linked_Array* larr5 = structs_api->create_linked_array(larr, sizeof(f32), 5);
 	structs_api->put_array(larr5->array, 2, &(f32){69.96});
@@ -65,7 +65,7 @@ void main() {
 	printf("larr5->array[2]: %0.3f\n", ((f32*)larr2->last->last->array)[2]);
 	
 	// collapse the whole array
-	structs_api->collapse_linked_array(larr3);
+	structs_api->collapse_linked_array(larlibx);
 
 	Array_Head larr2head = structs_api->get_array_head(larr2->array);
 	printf("larr2 count %d\n", larr2head.count);
@@ -94,6 +94,6 @@ void main() {
 
 	structs_api->destroy_hash_array(hash_array);
 
-	stdx_cleanup_structs();
+	libx_cleanup_structs();
 	printf("OK!\n");
 }

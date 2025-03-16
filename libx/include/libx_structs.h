@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdx_def.h"
+#include "libx_def.h"
 
 /* ---------------- ARRAY ---------------- */
 typedef struct Array_Head {
@@ -9,11 +9,11 @@ typedef struct Array_Head {
 } Array_Head;
 
 typedef enum Array_Head_Field {
-    STDX_ARRAY_SIZE_FIELD = 0,
-    STDX_ARRAY_STRIDE_FIELD,
-    STDX_ARRAY_COUNT_FIELD,
-    STDX_ARRAY_MAX_FIELD,
-    STDX_ARRAY_FIELDS,
+    LIBX_ARRAY_SIZE_FIELD = 0,
+    LIBX_ARRAY_STRIDE_FIELD,
+    LIBX_ARRAY_COUNT_FIELD,
+    LIBX_ARRAY_MAX_FIELD,
+    LIBX_ARRAY_FIELDS,
 } Array_Head_Field;
 /* ---------------- ARRAY ---------------- */
 
@@ -41,7 +41,7 @@ typedef struct Hash_Array {
 /* ---------------- HASH ARRAY ---------------- */
 
 
-typedef struct _stdx_structs_api {
+typedef struct _libx_structs_api {
     void (*destroy_array)(void* array);
 
     /**
@@ -100,8 +100,8 @@ typedef struct _stdx_structs_api {
     void* (*get_hash_array)(Hash_Array* array, cstr key);
     u8 (*pull_hash_array)(Hash_Array* array, cstr key, Key_Value* out);
     void (*destroy_hash_array)(Hash_Array* array);
-} _stdx_structs_api;
-extern _stdx_structs_api* structs_api;
+} _libx_structs_api;
+extern _libx_structs_api* structs_api;
 
-STDX_API u8 stdx_init_structs(void);
-STDX_API void stdx_cleanup_structs(void);
+LIBX_API u8 libx_init_structs(void);
+LIBX_API void libx_cleanup_structs(void);
