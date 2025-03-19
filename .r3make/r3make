@@ -2,16 +2,11 @@
     "c-instance": "GCC",
     "c-targets": {
         "libx": {
-            "r3make": {
-                "post-build": {
-                    "nofiles": null
-                }
-            },
             "c-defines": ["DLL_EXPORT"],
             "src-dirs": ["../libx/src"],
             "inc-dirs": ["../libx/include"],
             
-            "out-type": "dll",
+            "out-type": "lib",
             "out-name": "libx",
             "out-dir": "../bin"
         },
