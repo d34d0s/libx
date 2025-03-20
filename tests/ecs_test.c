@@ -42,15 +42,15 @@ int main() {
     libx_init_ecs();
 
     // register a component
-    if (ecs_api->register_component(0, &storage, add_component, rem_component, get_component)) {
+    if (ecsx->register_component(0, &storage, add_component, rem_component, get_component)) {
         printf("Component Registered!\n");
     }
 
     // create an entity
-    u32 entity = ecs_api->create_entity();
+    u32 entity = ecsx->create_entity();
     
     // add our component
-    if (ecs_api->add_component(0, entity)) {
+    if (ecsx->add_component(0, entity)) {
         printf("Added Component: %d To Entity: %d\n", 0, entity);
     }
 
@@ -59,7 +59,7 @@ int main() {
     storage.ivalue[entity] = 123321;
 
     my_component component;
-    if (ecs_api->get_component(0, entity, &component)) {
+    if (ecsx->get_component(0, entity, &component)) {
         printf("Retrieved Component!\n");
         printf("Tag: %s\n", component.tag);
         printf("Ivalue: %d\n", component.ivalue);
@@ -67,27 +67,27 @@ int main() {
     }
     
     // create an entity without our component
-    u32 e = ecs_api->create_entity();
+    u32 e = ecsx->create_entity();
 
     // create 8 more entities with our component
     LIBX_FORI(0, 8, 1) {
-        u32 e = ecs_api->create_entity();
-        ecs_api->add_component(0, e);
+        u32 e = ecsx->create_entity();
+        ecsx->add_component(0, e);
     }
 
     // we should have 10 entities
-    if (ecs_api->entity_manager.count == 10) printf("10 Entities Created!\n");
+    if (ecsx->entity_manager.count == 10) printf("10 Entities Created!\n");
     
     // retrieve an array containing all entities with our component
-    u32* buffer = ecs_api->get_entities(0);
-    LIBX_FORI(0, ecs_api->entity_manager.count, 1) {
+    u32* buffer = ecsx->get_entities(0);
+    LIBX_FORI(0, ecsx->entity_manager.count, 1) {
         u32 e = buffer[i];
         if (e == ENTITY_MAX) continue;    // skip sentinnel values
         printf("Entity Has My Component: %d\n", e);
     }
-    structs_api->destroy_array(buffer);
+    structx->destroy_array(buffer);
         
-    ecs_api->unregister_component(0);
+    ecsx->unregister_component(0);
     libx_cleanup_ecs();
     libx_cleanup_structs();
     libx_cleanup_memory();

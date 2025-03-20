@@ -1,6 +1,6 @@
 #include "../include/libx_memory.h"
 
-_libx_memory_api* memory_api = NULL;
+_libx_memory_api* memx = NULL;
 
 /* ---------------- STANDARD ---------------- */
 void _dealloc_impl(void* ptr) {
@@ -30,7 +30,7 @@ void* _alloc_impl(u64 size, u64 align) {
 }
 
 void* _realloc_impl(void* ptr, u64 size, u64 align) {
-	if (!ptr) return memory_api->alloc(size, align);	// error: null ptr!
+	if (!ptr) return memx->alloc(size, align);	// error: null ptr!
 	if (!size || !LIBX_IP2(align)) return NULL;	// error: value error!
 	
 	// retrieve the pointer difference stored before the ptr
@@ -59,10 +59,10 @@ void* _realloc_impl(void* ptr, u64 size, u64 align) {
 Linear_Allocator* _create_linear_allocator_impl(u64 max, u64 align) {
 	if (!max || !LIBX_IP2(align)) return NULL;	// error: value error!
 	
-	Linear_Allocator* allocator = (Linear_Allocator*)memory_api->alloc(sizeof(Linear_Allocator), align);
+	Linear_Allocator* allocator = (Linear_Allocator*)memx->alloc(sizeof(Linear_Allocator), align);
 	if (!allocator) return NULL;	// error: out of memory!
 
-	allocator->data = memory_api->alloc(max, align);
+	allocator->data = memx->alloc(max, align);
 	if (!allocator->data) return NULL;
 
 	allocator->offset = 0;
@@ -87,7 +87,7 @@ void* _linear_alloc_impl(Linear_Allocator* allocator, u64 size, u64 align) {
 
 void _destroy_linear_allocator_impl(Linear_Allocator* allocator) {
 	if (!allocator || !allocator->data) return;	// error: null ptr!
-	memory_api->dealloc(allocator->data);
+	memx->dealloc(allocator->data);
 	allocator->data = NULL;
 	allocator->offset = 0;
 	allocator->max = 0;
@@ -99,12 +99,12 @@ void _destroy_linear_allocator_impl(Linear_Allocator* allocator) {
 Arena_Allocator* _create_arena_allocator_impl(Arena_Allocator* allocator, u64 max, u64 align) {
     if (!max || !LIBX_IP2(align)) return NULL; // error: invalid size
 
-    Arena_Allocator* new_arena = (Arena_Allocator*)memory_api->alloc(sizeof(Arena_Allocator), align);
+    Arena_Allocator* new_arena = (Arena_Allocator*)memx->alloc(sizeof(Arena_Allocator), align);
     if (!new_arena) return NULL; // error: out of memory
 
-    new_arena->data = memory_api->alloc(max, align);
+    new_arena->data = memx->alloc(max, align);
     if (!new_arena->data) {
-        memory_api->dealloc(new_arena);
+        memx->dealloc(new_arena);
         return NULL;	// error: out of memory!
     }
 
@@ -146,7 +146,7 @@ void* _arena_alloc_impl(Arena_Allocator* allocator, u64 size, u64 align) {
     }
 
     // no space, allocate a new node and store it in the linked list
-    Arena_Allocator* new_node = memory_api->create_arena_allocator(allocator, allocator->max + size, align);
+    Arena_Allocator* new_node = memx->create_arena_allocator(allocator, allocator->max + size, align);
     if (!new_node) return NULL;
 
     new_node->offset = size;
@@ -159,8 +159,8 @@ void _destroy_arena_allocator_impl(Arena_Allocator* allocator) {
     if (allocator->next) allocator->next->last = allocator->last;
     if (allocator->last) allocator->last->next = allocator->next;
 	
-    memory_api->dealloc(allocator->data);
-    memory_api->dealloc(allocator);
+    memx->dealloc(allocator->data);
+    memx->dealloc(allocator);
 
 	allocator->data = NULL;
 	allocator->last = NULL;
@@ -173,18 +173,18 @@ void _collapse_arena_allocator_impl(Arena_Allocator* allocator) {
     Arena_Allocator* next = allocator->next;
     while (next) {
         Arena_Allocator* temp = next->next;
-        memory_api->destroy_arena_allocator(next);
+        memx->destroy_arena_allocator(next);
         next = temp;
     }
 
 	Arena_Allocator* last = allocator->last;
     while (last) {
         Arena_Allocator* temp = last->last;
-        memory_api->destroy_arena_allocator(last);
+        memx->destroy_arena_allocator(last);
         last = temp;
     }
     
-	memory_api->destroy_arena_allocator(allocator);
+	memx->destroy_arena_allocator(allocator);
 }
 /* ---------------- ARENA ALLOCATOR ---------------- */
 
@@ -200,28 +200,28 @@ void _collapse_arena_allocator_impl(Arena_Allocator* allocator) {
 
 /* ---------------- API ---------------- */
 u8 libx_init_memory(void) {
-	memory_api = (_libx_memory_api*)malloc(sizeof(_libx_memory_api));
-	if (!memory_api) return LIBX_FALSE;
+	memx = (_libx_memory_api*)malloc(sizeof(_libx_memory_api));
+	if (!memx) return LIBX_FALSE;
 
-	memory_api->alloc = _alloc_impl;
-	memory_api->dealloc = _dealloc_impl;
-	memory_api->realloc = _realloc_impl;
+	memx->alloc = _alloc_impl;
+	memx->dealloc = _dealloc_impl;
+	memx->realloc = _realloc_impl;
 	
-	memory_api->create_linear_allocator = _create_linear_allocator_impl;
-	memory_api->linear_alloc = _linear_alloc_impl;
-	memory_api->linear_reset = _linear_reset_impl;
-	memory_api->destroy_linear_allocator = _destroy_linear_allocator_impl;
+	memx->create_linear_allocator = _create_linear_allocator_impl;
+	memx->linear_alloc = _linear_alloc_impl;
+	memx->linear_reset = _linear_reset_impl;
+	memx->destroy_linear_allocator = _destroy_linear_allocator_impl;
 	
-	memory_api->create_arena_allocator = _create_arena_allocator_impl;
-	memory_api->arena_alloc = _arena_alloc_impl;
-	memory_api->arena_reset = _arena_reset_impl;
-	memory_api->destroy_arena_allocator = _destroy_arena_allocator_impl;
-	memory_api->collapse_arena_allocator = _collapse_arena_allocator_impl;
+	memx->create_arena_allocator = _create_arena_allocator_impl;
+	memx->arena_alloc = _arena_alloc_impl;
+	memx->arena_reset = _arena_reset_impl;
+	memx->destroy_arena_allocator = _destroy_arena_allocator_impl;
+	memx->collapse_arena_allocator = _collapse_arena_allocator_impl;
 
 	return LIBX_TRUE;
 }
 
 void libx_cleanup_memory(void) {
-	free(memory_api);
+	free(memx);
 }
 /* ---------------- API ---------------- */

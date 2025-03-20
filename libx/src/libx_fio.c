@@ -1,7 +1,7 @@
 #include "../include/libx_fio.h"
 #include "../include/libx_memory.h"
 
-_libx_fileio_api* fileio_api = NULL;
+_libx_fileio_api* filex = NULL;
 
 u8 _exists_impl(cstr path) {
     FILE* file = fopen(path, "rb");
@@ -45,15 +45,15 @@ str _read_impl(cstr path, u64 size) {
     FILE* file = fopen(path, "rb");
     if (!file) return NULL; // error: file not found!
 
-    if (!size) size = fileio_api->size(path);
+    if (!size) size = filex->size(path);
 
-    str out = memory_api->alloc(size+1, 16);
+    str out = memx->alloc(size+1, 16);
     if (!out) return NULL;  // error: out of memory!
     
     u64 read = 0;
     read = fread(out, sizeof(char), size, file);
     if (read != size) {
-        memory_api->dealloc(out);
+        memx->dealloc(out);
         fclose(file);
         return NULL;    // error: failed to read file!
     }
@@ -118,14 +118,14 @@ u8 _writeb_impl(cstr path, u64 size, u8 preserve, void* ptr) {
 }
 
 u8 _append_impl(cstr path, cstr lines, u8 newline) {
-    u8 result = fileio_api->write(path, lines, 1);
-    if (newline) result = fileio_api->write(path, "\n", 1);
+    u8 result = filex->write(path, lines, 1);
+    if (newline) result = filex->write(path, "\n", 1);
     return result;
 }
 
 u8 _appendb_impl(cstr path, u64 size, u8 newline, void* ptr) {
-    u8 result = fileio_api->writeb(path, size, 1, ptr);
-    if (newline) result = fileio_api->write(path, "\n", 1);
+    u8 result = filex->writeb(path, size, 1, ptr);
+    if (newline) result = filex->write(path, "\n", 1);
     return result;
 }
 
@@ -133,13 +133,13 @@ u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
     FILE* file = fopen(path, "rb");
     if (!file) return LIBX_FALSE;    // error: failed to open file!
 
-    str buffer = memory_api->alloc(lines, 16);
+    str buffer = memx->alloc(lines, 16);
     if (!buffer) return LIBX_FALSE; // error: failed to allocate temporary buffer!
     
     do callback((cstr)buffer);
     while(fgets(buffer, lines ,file));
     
-    memory_api->dealloc(buffer);
+    memx->dealloc(buffer);
     fclose(file);
 
     return LIBX_TRUE;
@@ -147,24 +147,24 @@ u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
 
 
 u8 libx_init_fileio(void) {
-    fileio_api  = memory_api->alloc(sizeof(_libx_fileio_api), 16);
-    if (!fileio_api) return LIBX_FALSE; // error: out of memory!
+    filex  = memx->alloc(sizeof(_libx_fileio_api), 16);
+    if (!filex) return LIBX_FALSE; // error: out of memory!
 
-    fileio_api->exists = _exists_impl;
-    fileio_api->copy = _copy_impl;
-    fileio_api->size = _size_impl;
-    fileio_api->read = _read_impl;
-    fileio_api->readb = _readb_impl;
-    fileio_api->write = _write_impl;
-    fileio_api->remove = _remove_impl;
-    fileio_api->append = _append_impl;
-    fileio_api->writeb = _writeb_impl;
-    fileio_api->appendb = _appendb_impl;
-    fileio_api->process = _process_impl;
+    filex->exists = _exists_impl;
+    filex->copy = _copy_impl;
+    filex->size = _size_impl;
+    filex->read = _read_impl;
+    filex->readb = _readb_impl;
+    filex->write = _write_impl;
+    filex->remove = _remove_impl;
+    filex->append = _append_impl;
+    filex->writeb = _writeb_impl;
+    filex->appendb = _appendb_impl;
+    filex->process = _process_impl;
 
     return LIBX_TRUE;
 }
 
 void libx_cleanup_fileio(void) {
-    memory_api->dealloc(fileio_api);
+    memx->dealloc(filex);
 }
