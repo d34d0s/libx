@@ -91,9 +91,14 @@ f32 _dot_vec2_impl(Vec2 v1, Vec2 v2) {
     return v1.x * v2.x + v1.y * v2.y;
 }
 
-// Normalize a Vec2 (make it unit length)
+// Return the magnitude of a Vec2
+f32 _mag_vec2_impl(Vec2 v) {
+    return sqrtf(v.x * v.x + v.y * v.y);
+}
+
+// Normalize a Vec2
 Vec2 _norm_vec2_impl(Vec2 v) {
-    f32 length = sqrtf(v.x * v.x + v.y * v.y);
+    f32 length = mathx->vec.mag2(v);
     return mathx->vec.scale2(v, 1.0f / length);
 }
 /* ---------------- VEC2 ---------------- */
@@ -135,9 +140,14 @@ f32 _dot_vec3_impl(Vec3 a, Vec3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-// Normalize a vec (make it unit length)
+// Return the magnitude of a Vec3
+f32 _mag_vec3_impl(Vec3 v) {
+    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+// Normalize a vec
 Vec3 _norm_vec3_impl(Vec3 v) {
-    f32 length = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+    f32 length = mathx->vec.mag3(v);
     return mathx->vec.scale3(v, 1.0f / length);
 }
 
@@ -178,9 +188,14 @@ f32 _dot_vec4_impl(Vec4 v1, Vec4 v2) {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 }
 
-// Normalize a Vec4 (make it unit length)
+// Return the magnitude of a Vec4
+f32 _mag_vec4_impl(Vec4 v) {
+    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+}
+
+// Normalize a Vec4
 Vec4 _norm_vec4_impl(Vec4 v) {
-    f32 length = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+    f32 length = mathx->vec.mag4(v);
     return mathx->vec.scale4(v, 1.0f / length);
 }
 /* ---------------- VEC4 ---------------- */
@@ -333,6 +348,35 @@ Mat4 _rotz4_impl(f32 angle) {
     return result;
 }
 
+Mat4 _rot4_impl(Vec3 axis, f32 angle) {
+    Mat4 result = mathx->mat.identity4();
+    f32 rad = mathx->scalar.radians(angle);
+    f32 cos_theta = cosf(rad);
+    f32 sin_theta = sinf(rad);
+
+    f32 axis_len = mathx->vec.mag3(axis);
+    if (axis_len > 0.0f) {
+        axis.x /= axis_len;
+        axis.y /= axis_len;
+        axis.z /= axis_len;
+    }
+
+    result.m[0] = cos_theta + (1 - cos_theta) * axis.x * axis.x;
+    result.m[1] = (1 - cos_theta) * axis.x * axis.y + sin_theta * axis.z;
+    result.m[2] = (1 - cos_theta) * axis.x * axis.z - sin_theta * axis.y;
+
+    result.m[4] = (1 - cos_theta) * axis.y * axis.x - sin_theta * axis.z;
+    result.m[5] = cos_theta + (1 - cos_theta) * axis.y * axis.y;
+    result.m[6] = (1 - cos_theta) * axis.y * axis.z + sin_theta * axis.x;
+
+    result.m[8] = (1 - cos_theta) * axis.z * axis.x + sin_theta * axis.y;
+    result.m[9] = (1 - cos_theta) * axis.z * axis.y - sin_theta * axis.x;
+    result.m[10] = cos_theta + (1 - cos_theta) * axis.z * axis.z;
+
+    return result;
+}
+
+
 Mat4 _mult4_impl(Mat4 a, Mat4 b) {
     Mat4 result = {0};
     for (int row = 0; row < 4; ++row) {
@@ -416,6 +460,7 @@ u8 libx_init_math(void) {
     mathx->vec.sub2 = _sub_vec2_impl;
     mathx->vec.dot2 = _dot_vec2_impl;
     mathx->vec.norm2 = _norm_vec2_impl;
+    mathx->vec.mag2 = _mag_vec2_impl;
     mathx->vec.scale2 = _scale_vec2_impl;
     
     mathx->vec.vec3 = _new_vec3_impl;
@@ -423,6 +468,7 @@ u8 libx_init_math(void) {
     mathx->vec.sub3 = _sub_vec3_impl;
     mathx->vec.dot3 = _dot_vec3_impl;
     mathx->vec.norm3 = _norm_vec3_impl;
+    mathx->vec.mag3 = _mag_vec3_impl;
     mathx->vec.scale3 = _scale_vec3_impl;
     mathx->vec.cross3 = _cross_vec3_impl;
     
@@ -431,6 +477,7 @@ u8 libx_init_math(void) {
     mathx->vec.sub4 = _sub_vec4_impl;
     mathx->vec.dot4 = _dot_vec4_impl;
     mathx->vec.norm4 = _norm_vec4_impl;
+    mathx->vec.mag4 = _mag_vec4_impl;
     mathx->vec.scale4 = _scale_vec4_impl;
     
     mathx->mat.print2 = _print_mat2_impl;
@@ -453,6 +500,7 @@ u8 libx_init_math(void) {
     mathx->mat.identity4 = _identity4_impl;
     mathx->mat.transpose4 = _transpose4_impl;
     
+    mathx->mat.rot4 = _rot4_impl;
     mathx->mat.rotx4 = _rotx4_impl;
     mathx->mat.roty4 = _roty4_impl;
     mathx->mat.rotz4 = _rotz4_impl;
