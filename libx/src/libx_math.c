@@ -248,10 +248,10 @@ Mat3 _mul_mat3_impl(Mat3 a, Mat3 b) {
 /* ---------------- MAT4 ---------------- */
 Mat4 _identity4_impl(void) {
     return (Mat4){.m={
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
     }};
 }
 
@@ -268,9 +268,9 @@ Mat4 _transpose4_impl(Mat4 mat) {
 
 Vec3 _mult4v3_impl(Mat4 m, Vec3 v) {
     Vec3 result;
-    result.x = m.m[0] * v.x + m.m[1] * v.y + m.m[2] * v.z + m.m[3];
-    result.y = m.m[4] * v.x + m.m[5] * v.y + m.m[6] * v.z + m.m[7];
-    result.z = m.m[8] * v.x + m.m[9] * v.y + m.m[10] * v.z + m.m[11];
+    result.x = m.m[0] * v.x + m.m[4] * v.y + m.m[8] * v.z + m.m[12];
+    result.y = m.m[1] * v.x + m.m[5] * v.y + m.m[9] * v.z + m.m[13];
+    result.z = m.m[2] * v.x + m.m[6] * v.y + m.m[10] * v.z + m.m[14];
     return result;
 }
 
@@ -286,47 +286,47 @@ Mat4 _scale4_impl(f32 x, f32 y, f32 z) {
 
 Mat4 _trans4_impl(f32 x, f32 y, f32 z) {
     Mat4 result = {
-        1, 0, 0, x,
-        0, 1, 0, y,
-        0, 0, 1, z,
-        0, 0, 0, 1
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        x, y, z, 1
     };
     return result;
 }
 
 Mat4 _rotx4_impl(f32 angle) {
-    f32 rad = mathx->scalar.to_radians(angle);
+    f32 rad = mathx->scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
     Mat4 result = {
         1, 0, 0, 0,
-        0, cos_angle,-sin_angle, 0,
-        0, sin_angle, cos_angle, 0,
+        0, cos_angle, sin_angle, 0,
+        0,-sin_angle, cos_angle, 0,
         0, 0, 0, 1
     };
     return result;
 }
 
 Mat4 _roty4_impl(f32 angle) {
-    f32 rad = mathx->scalar.to_radians(angle);
+    f32 rad = mathx->scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
     Mat4 result = {
-        cos_angle, 0, sin_angle, 0,
+        cos_angle, 0,-sin_angle, 0,
         0, 1, 0, 0,
-       -sin_angle, 0, cos_angle, 0,
+        sin_angle, 0, cos_angle, 0,
         0, 0, 0, 1
     };
     return result;
 }
 
 Mat4 _rotz4_impl(f32 angle) {
-    f32 rad = mathx->scalar.to_radians(angle);
+    f32 rad = mathx->scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
     Mat4 result = {
-        cos_angle,-sin_angle, 0, 0,
-        sin_angle, cos_angle, 0, 0,
+        cos_angle, sin_angle, 0, 0,
+       -sin_angle, cos_angle, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
     };
@@ -346,19 +346,18 @@ Mat4 _mult4_impl(Mat4 a, Mat4 b) {
 }
 
 Mat4 _lookat_impl(Vec3 eye, Vec3 center, Vec3 up) {
-    Vec3 z = mathx->vec.norm3(mathx->vec.sub3(eye, center)); 
-    Vec3 x = mathx->vec.norm3(mathx->vec.cross3(up, z));
-    Vec3 y = mathx->vec.norm3(mathx->vec.cross3(z, x));
+    Vec3 target = mathx->vec.add3(eye, center);
+    
+    Vec3 f = mathx->vec.norm3(mathx->vec.sub3(target, eye)); 
+    Vec3 s = mathx->vec.norm3(mathx->vec.cross3(f, up));
+    Vec3 u = mathx->vec.norm3(mathx->vec.cross3(s, f));
 
-    Mat4 result = mathx->mat.mult4(
-        mathx->mat.trans4(-eye.x, -eye.y, -eye.z),
-        (Mat4){
-            x.x, x.y, x.z, 0,
-            y.x, y.y, y.z, 0,
-            z.x, z.y, z.z, 0,
-            0, 0, 0, 1,
-        }
-    );
+    Mat4 result = {
+        s.x, u.x,-f.x, 0.0f,
+        s.y, u.y,-f.y, 0.0f,
+        s.z, u.z,-f.z, 0.0f,
+       -mathx->vec.dot3(s, eye), -mathx->vec.dot3(u, eye), mathx->vec.dot3(f, eye), 1.0f,
+    };
     
     return result;
 }
@@ -373,27 +372,29 @@ Mat4 _ortho_impl(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
     f32 fpn = far + near;
     
     Mat4 result = {
-        2.0f / rml,  0,          0,          -rpl / rml,
-        0,           2.0f / tmb, 0,          -tpb / tmb,
-        0,           0,         -2.0f / fmn, -fpn / fmn,
-        0, 0, 0, 1
+        2.0f / rml,  0.0f,       0.0f,       0.0f,
+        0.0f,        2.0f / tmb, 0.0f,       0.0f,
+        0.0f,        0,         -2.0f / fmn, 0.0f,
+        -rpl / rml, -tpb / tmb, -fpn / fmn, 1.0f
+
     };
 
     return result;
 }
 
 Mat4 _perspective_impl(f32 fovy, f32 aspect, f32 near, f32 far) {
-    f32 tfov = tanf(fovy / 2.0f);
+    f32 tfov = tanf(mathx->scalar.radians(fovy) / 2.0f);
     f32 fpn = far + near;
     f32 fmn = far - near;
     f32 fn = far * near;
     
     Mat4 result = {
-        1.0f / (aspect * tfov),   0,                0,  0,
-        0,                        1.0f / tfov,      0,  0,
-        0,                        0,               -fpn / fmn, -(2.0f * fn) / fmn,
-        0,                        0,               -1.0f,       1
+        1.0f / (aspect * tfov),   0,                0,                       0,
+        0,                        1.0f / tfov,      0,                       0,
+        0,                        0,               -fpn / fmn,              -1.0f,
+        0,                        0,               -(2.0f * fn) / fmn,       1.0f
     };
+
     return result;
 }
 /* ---------------- MAT4 ---------------- */
@@ -403,7 +404,7 @@ u8 libx_init_math(void) {
     if (!mathx) return LIBX_FALSE;   // error: out of memory!
 
     // SCALAR API INIT
-    mathx->scalar.to_radians = _to_radians_impl;
+    mathx->scalar.radians = _to_radians_impl;
 
     // VECTOR API INIT
     mathx->vec.print2 = _print_vec2_impl;

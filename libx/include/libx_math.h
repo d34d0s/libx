@@ -20,7 +20,7 @@ typedef struct Mat4 { f32 m[16]; } Mat4;
 typedef struct _libx_math_api {
     struct scalar {
         // Scalar Math
-        f32 (*to_radians)(f32 deg);
+        f32 (*radians)(f32 deg);
     } scalar;
     
     struct vec {
@@ -56,8 +56,8 @@ typedef struct _libx_math_api {
     } vec;
 
     /**
-     * Right-Handed Row-Major Matrix Transformation API
-     * `mathx->mat.transposeN()` available, but it is recommended to let GL transpose on GPU transmit.
+     * Right-Handed Column-Major Matrix Transformation API
+     * (OpenGL Friendly)
      */
     struct mat {
         // Utility

@@ -220,6 +220,7 @@ i32 _probe_slot_hash_array(Hash_Array* array, cstr key) {
     i32 start = index;
 
     while (array->map[index].key) {
+        if (strcmp(array->map[index].key, key) == 0) return index;
         index = (index + 1) % meta.max;
         if (index == start) return -1;
     }
