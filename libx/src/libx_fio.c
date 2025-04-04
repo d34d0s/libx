@@ -47,7 +47,7 @@ str _read_impl(cstr path, u64 size) {
 
     if (!size) size = filex->size(path);
 
-    str out = memx->alloc(size+1, 16);
+    str out = memx->alloc(size+1, 8);
     if (!out) return NULL;  // error: out of memory!
     
     u64 read = 0;
@@ -133,7 +133,7 @@ u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
     FILE* file = fopen(path, "rb");
     if (!file) return LIBX_FALSE;    // error: failed to open file!
 
-    str buffer = memx->alloc(lines, 16);
+    str buffer = memx->alloc(lines, 8);
     if (!buffer) return LIBX_FALSE; // error: failed to allocate temporary buffer!
     
     do callback((cstr)buffer);
@@ -147,7 +147,14 @@ u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
 
 
 u8 libx_init_fileio(void) {
-    filex  = memx->alloc(sizeof(_libx_fileio_api), 16);
+    if (filex != NULL) return LIBX_TRUE;    // redundant call: file API already initialized!
+
+    if (!memx) {
+        printf("libx memory api not initialized!\n");
+        return LIBX_FALSE; // error: failed to initialize memory api!
+    }
+    
+    filex  = memx->alloc(sizeof(_libx_fileio_api), 8);
     if (!filex) return LIBX_FALSE; // error: out of memory!
 
     filex->exists = _exists_impl;
@@ -166,5 +173,7 @@ u8 libx_init_fileio(void) {
 }
 
 void libx_cleanup_fileio(void) {
+    if (filex == NULL) return;    // error: file API not initialized!    
     memx->dealloc(filex);
+    filex = NULL;
 }

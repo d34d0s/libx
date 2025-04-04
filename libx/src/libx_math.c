@@ -444,7 +444,14 @@ Mat4 _perspective_impl(f32 fovy, f32 aspect, f32 near, f32 far) {
 /* ---------------- MAT4 ---------------- */
 
 u8 libx_init_math(void) {
-    mathx = memx->alloc(sizeof(_libx_math_api), 16);
+    if (mathx != NULL) return LIBX_TRUE;    // redundant call: math API already initialized!
+
+    if (!memx) {
+        printf("libx memory api not initialized!\n");
+        return LIBX_FALSE; // error: failed to initialize memory api!
+    }
+
+    mathx = memx->alloc(sizeof(_libx_math_api), 8);
     if (!mathx) return LIBX_FALSE;   // error: out of memory!
 
     // SCALAR API INIT
@@ -519,6 +526,8 @@ u8 libx_init_math(void) {
 }
 
 void libx_cleanup_math(void) {
+    if (mathx == NULL) return;    // error: math API not initialized!
     memx->dealloc(mathx);
+    mathx = NULL;
 }
 

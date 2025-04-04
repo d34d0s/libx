@@ -200,6 +200,8 @@ void _collapse_arena_allocator_impl(Arena_Allocator* allocator) {
 
 /* ---------------- API ---------------- */
 u8 libx_init_memory(void) {
+    if (memx != NULL) return LIBX_TRUE;    // redundant call: memory API already initialized!
+
 	memx = (_libx_memory_api*)malloc(sizeof(_libx_memory_api));
 	if (!memx) return LIBX_FALSE;
 
@@ -222,6 +224,8 @@ u8 libx_init_memory(void) {
 }
 
 void libx_cleanup_memory(void) {
+    if (memx == NULL) return;    // error: memory API not initialized!
 	free(memx);
+	memx = NULL;
 }
 /* ---------------- API ---------------- */

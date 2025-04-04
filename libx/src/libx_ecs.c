@@ -99,6 +99,8 @@ u32* _get_entities_impl(u8 id) {
 
 
 u8 libx_init_ecs(void) {
+    if (ecsx != NULL) return LIBX_TRUE;    // redundant call: ecs API already initialized!
+
     if (!memx) {
         printf("libx memory api not initialized!\n");
         return LIBX_FALSE; // error: failed to initialize memory api!
@@ -109,7 +111,7 @@ u8 libx_init_ecs(void) {
         return LIBX_FALSE; // error: failed to initialize memory api!
     }
 
-    ecsx = memx->alloc(sizeof(_libx_ecs_api), 16);
+    ecsx = memx->alloc(sizeof(_libx_ecs_api), 8);
     if (!ecsx) return LIBX_FALSE;  // error: out of memory!
     
     ecsx->entity_manager.queue = structx->create_array(sizeof(u32), ENTITY_MAX);
@@ -184,6 +186,8 @@ u8 libx_init_ecs(void) {
 }
 
 void libx_cleanup_ecs(void) {
+    if (ecsx == NULL) return;    // error: ecs API not initialized!
+
     structx->destroy_array(ecsx->entity_manager.mask);
     structx->destroy_array(ecsx->entity_manager.queue);
 
@@ -193,4 +197,5 @@ void libx_cleanup_ecs(void) {
     structx->destroy_array(ecsx->component_manager.get_component_fptr);
 
     memx->dealloc(ecsx);
+    ecsx = NULL;
 }

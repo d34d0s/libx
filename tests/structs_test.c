@@ -11,33 +11,35 @@ void main() {
 	structx->push_array(verts, LIBX_LITERAL_PTR(f32, 420));
 	structx->push_array(verts, LIBX_LITERAL_PTR(f32, 123321));
 
-	LIBX_FORI(0, 3, 1) { printf("verts[%d] = %0.1f\n", i, verts[i]); }
+	Array_Head vhead = structx->get_array_head(verts);
+	LIBX_FOR(u32, a, 0, vhead.max, 1) { printf("verts[%d] = %0.1f\n", a, verts[a]); }
 
 	// never happens as cap has been reached, index 2 is not overwritten.
 	structx->push_array(verts, LIBX_LITERAL_PTR(f32, 23));
-	printf("verts[2] = %0.1f\n", verts[2]);
 
 	f32 out_vert;
 	structx->pull_array(verts, 1, &out_vert);
 	printf("verts[1] out = %0.1f\n", out_vert);
 
-	Array_Head vhead = structx->get_array_head(verts);
+	vhead = structx->get_array_head(verts);
 	printf("size: %d\n", vhead.size);
 	printf("stride: %d\n", vhead.stride);
 	printf("count: %d\n", vhead.count);
 	printf("max: %d\n", vhead.max);
 
 	verts = structx->resize_array(verts, 6);
+	if (!verts) printf("failed to resize verts array!\n");
+	else printf("resized verts array!\n");
 	
-	// data persists after resizin g
-	LIBX_FOR(u32, a, 0, vhead.count+1, 1) { printf("verts[%d] = %0.1f\n", a, verts[a]); }
-
 	// array headers are automatically updated when using the API.
 	vhead = structx->get_array_head(verts);
 	printf("size: %d\n", vhead.size);
 	printf("stride: %d\n", vhead.stride);
 	printf("count: %d\n", vhead.count);
 	printf("max: %d\n", vhead.max);
+	
+	// data persists after resizing
+	LIBX_FOR(u32, a, 0, vhead.max, 1) { printf("verts[%d] = %0.1f\n", a, verts[a]); }
 	
 	structx->destroy_array(verts);
 
@@ -71,27 +73,90 @@ void main() {
 	printf("larr2 count %d\n", larr2head.count);
 
 	Hash_Array* hash_array = structx->create_hash_array(4);
-	structx->put_hash_array(hash_array, "age", 	&(u32){1121});
-	structx->put_hash_array(hash_array, "something", 	&(u32){666420999});
-	printf("Hash Array Resized %d times!\n", hash_array->meta.max/4);
+	structx->put_hash_array(hash_array, "age", 	&(i32){1121});
+	structx->put_hash_array(hash_array, "something", 	&(i32){666420999});
 	structx->put_hash_array(hash_array, "send help", 	"AHHHHHH");
-	structx->put_hash_array(hash_array, "something else", 	&(u32){123321});
-	printf("Hash Array Resized %d times!\n", hash_array->meta.max/4);
-	structx->put_hash_array(hash_array, "year", 	&(u32){999});
-	structx->put_hash_array(hash_array, "version", 	&(u32){222});
+	structx->put_hash_array(hash_array, "something else", 	&(i32){123321});
+
+	printf("hash meta: (size)%d (stride)%d (count)%d (max)%d\n",
+		hash_array->meta.size,
+		hash_array->meta.stride,
+		hash_array->meta.count,
+		hash_array->meta.max
+	);
+
+	structx->put_hash_array(hash_array, "year", 	&(i32){999});
+	structx->put_hash_array(hash_array, "version", 	&(i32){2200200});
+
+	printf("hash meta 2: (size)%d (stride)%d (count)%d (max)%d\n",
+		hash_array->meta.size,
+		hash_array->meta.stride,
+		hash_array->meta.count,
+		hash_array->meta.max
+	);
 	
+	i32 get_age = *(i32*)structx->get_hash_array(hash_array, "age");
+	if (get_age) printf("(get) age: %d\n", get_age);
+	
+	i32 get_something = *(i32*)structx->get_hash_array(hash_array, "something");
+	if (get_something) printf("(get) something: %d\n", get_something);
+	
+	str get_help = (str)structx->get_hash_array(hash_array, "send help");
+	if (get_help) printf("(get) send help: %s\n",get_help);
+	
+	i32 get_else = *(i32*)structx->get_hash_array(hash_array, "something else");
+	if (get_else) printf("(get) something else: %d\n", get_else);
+	
+	i32 get_year = *(i32*)structx->get_hash_array(hash_array, "year");
+	if (get_year) printf("(get) year: %d\n", get_year);
+	
+	i32 get_version = *(i32*)structx->get_hash_array(hash_array, "version");
+	if (get_version) printf("(get) version: %d\n", get_version);
+	
+	printf("all hash array keys (%d)\n", hash_array->meta.count);
+	cstr* keys = structx->get_hash_array_keys(hash_array);
+	LIBX_FORI(0, hash_array->meta.count, 1) {
+		printf("%s |", keys[i]);
+	}
+	printf("\n");
+	structx->destroy_array(keys);
+	
+	printf("all hash array values (%d)\n", hash_array->meta.count);
+	void** values = structx->get_hash_array_values(hash_array);
+	LIBX_FORI(0, hash_array->meta.count, 1) {
+		if (i == 1) printf("%s |", values[i]);
+		else printf("%d |", *(i32*)values[i]);
+	}
+	printf("\n");
+	structx->destroy_array(values);
+	
+	Key_Value pulled;
+	if (structx->pull_hash_array(hash_array, "age", &pulled)) {
+		printf("pulled (key)%s | (value)%d\n", pulled.key, *(i32*)pulled.value);
+	}
+	printf("hash meta 3: (size)%d (stride)%d (count)%d (max)%d\n",
+		hash_array->meta.size,
+		hash_array->meta.stride,
+		hash_array->meta.count,
+		hash_array->meta.max
+	);
 
-	printf("(get) age: %d\n", *(i32*)structx->get_hash_array(hash_array, "age"));
-	printf("(get) something: %d\n", *(i32*)structx->get_hash_array(hash_array, "something"));
-	printf("(get) send help: %s\n", (cstr)structx->get_hash_array(hash_array, "send help"));
-	printf("(get) something else: %d\n", *(i32*)structx->get_hash_array(hash_array, "something else"));
-	printf("(get) year: %d\n", *(i32*)structx->get_hash_array(hash_array, "year"));
-	printf("(get) version: %d\n", *(i32*)structx->get_hash_array(hash_array, "version"));
-
-	Key_Value version_kv;
-	if (structx->pull_hash_array(hash_array, "version", &version_kv)) 
-		printf("(pull) %s: %d\n", version_kv.key, *(u32*)version_kv.value);
-
+	keys = structx->get_hash_array_keys(hash_array);
+	LIBX_FORI(0, hash_array->meta.count, 1) {
+		printf("%s |", keys[i]);
+	}
+	printf("\n");
+	structx->destroy_array(keys);
+	
+	printf("all hash array values (%d)\n", hash_array->meta.count);
+	values = structx->get_hash_array_values(hash_array);
+	LIBX_FORI(0, hash_array->meta.count, 1) {
+		if (i == 0) printf("%s |", values[i]);
+		else printf("%d |", *(i32*)values[i]);
+	}
+	printf("\n");
+	structx->destroy_array(values);
+	
 	structx->destroy_hash_array(hash_array);
 
 	libx_cleanup_structs();
