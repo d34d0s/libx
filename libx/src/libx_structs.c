@@ -265,10 +265,14 @@ u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
     
     i32 index = _probe_slot_hash_array(array, key);
     if (index == -1) return LIBX_FALSE;
-    
-    structx->put_array(array->map, index, &(Key_Value){ .value = value, .key = strdup(key)});
-    array->meta = structx->get_array_head(array->map);
 
+    if (array->map[index].key && strcmp(array->map[index].key, key) == 0) {
+        array->map[index].value = value;
+    } else {
+        structx->put_array(array->map, index, &(Key_Value){ .value = value, .key = strdup(key)});
+    }
+    
+    array->meta = structx->get_array_head(array->map);
     return LIBX_TRUE;
 }
 

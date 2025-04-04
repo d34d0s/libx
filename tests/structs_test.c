@@ -1,6 +1,58 @@
 #include "../libx/include/libx_memory.h"
 #include "../libx/include/libx_structs.h"
 
+void hash_array_test(void) {
+	Hash_Array* h = structx->create_hash_array(32);
+	if (!h) {
+		printf("failed to create hash array!\n");
+		return;
+	}
+	
+	Key_Value kvs[] = {
+		(Key_Value){.key = "u_model", .value = LIBX_LITERAL_PTR(f32, 420.0)},
+		(Key_Value){.key = "u_view", .value = LIBX_LITERAL_PTR(f32, 666.0)},
+		(Key_Value){.key = "u_proj", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+		
+		(Key_Value){.key = "u_light.ambient", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+		(Key_Value){.key = "u_light.diffuse", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+		(Key_Value){.key = "u_light.specular", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+		(Key_Value){.key = "u_light.location", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+		
+		(Key_Value){.key = "u_material.shine", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+		(Key_Value){.key = "u_material.ambient", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+		(Key_Value){.key = "u_material.diffuse", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+		(Key_Value){.key = "u_material.specular", .value = LIBX_LITERAL_PTR(f32, 123.0)},
+	};
+	int keys = (int)(sizeof(kvs) / sizeof(Key_Value));
+
+	LIBX_FORI(0, keys, 1) {
+		if (!structx->put_hash_array(h, kvs[i].key, kvs[i].value)) {
+			printf("failed to put hash array key: (iter)%d (key)%s\n", i, kvs[i].key);
+			structx->destroy_hash_array(h);
+			return;
+		}
+	}
+	
+	f32 shine = *(f32*)structx->get_hash_array(h, "u_material.shine");
+	printf("default shine: %0.1f\n", shine);
+	
+	structx->put_hash_array(h, "u_material.shine", LIBX_LITERAL_PTR(f32, 2222.1111));
+	shine = *(f32*)structx->get_hash_array(h, "u_material.shine");
+	printf("updated(1) shine: %0.1f\n", shine);
+
+	structx->put_hash_array(h, "u_material.shine", LIBX_LITERAL_PTR(f32, 69.69));
+	shine = *(f32*)structx->get_hash_array(h, "u_material.shine");
+	printf("updated(2) shine: %0.1f\n", shine);
+
+	cstr* all_keys = structx->get_hash_array_keys(h);
+	printf("all keys (%d)\n", h->meta.count);
+	LIBX_FORI(0, h->meta.count, 1) {
+		printf("| (%d) %s | ", i, all_keys[i]);
+	}
+	printf("\n");
+	structx->destroy_array(all_keys);
+}
+
 void main() {
 	libx_init_memory();
 	libx_init_structs();
@@ -72,92 +124,7 @@ void main() {
 	Array_Head larr2head = structx->get_array_head(larr2->array);
 	printf("larr2 count %d\n", larr2head.count);
 
-	Hash_Array* hash_array = structx->create_hash_array(4);
-	structx->put_hash_array(hash_array, "age", 	&(i32){1121});
-	structx->put_hash_array(hash_array, "something", 	&(i32){666420999});
-	structx->put_hash_array(hash_array, "send help", 	"AHHHHHH");
-	structx->put_hash_array(hash_array, "something else", 	&(i32){123321});
-
-	printf("hash meta: (size)%d (stride)%d (count)%d (max)%d\n",
-		hash_array->meta.size,
-		hash_array->meta.stride,
-		hash_array->meta.count,
-		hash_array->meta.max
-	);
-
-	structx->put_hash_array(hash_array, "year", 	&(i32){999});
-	structx->put_hash_array(hash_array, "version", 	&(i32){2200200});
-
-	printf("hash meta 2: (size)%d (stride)%d (count)%d (max)%d\n",
-		hash_array->meta.size,
-		hash_array->meta.stride,
-		hash_array->meta.count,
-		hash_array->meta.max
-	);
-	
-	i32 get_age = *(i32*)structx->get_hash_array(hash_array, "age");
-	if (get_age) printf("(get) age: %d\n", get_age);
-	
-	i32 get_something = *(i32*)structx->get_hash_array(hash_array, "something");
-	if (get_something) printf("(get) something: %d\n", get_something);
-	
-	str get_help = (str)structx->get_hash_array(hash_array, "send help");
-	if (get_help) printf("(get) send help: %s\n",get_help);
-	
-	i32 get_else = *(i32*)structx->get_hash_array(hash_array, "something else");
-	if (get_else) printf("(get) something else: %d\n", get_else);
-	
-	i32 get_year = *(i32*)structx->get_hash_array(hash_array, "year");
-	if (get_year) printf("(get) year: %d\n", get_year);
-	
-	i32 get_version = *(i32*)structx->get_hash_array(hash_array, "version");
-	if (get_version) printf("(get) version: %d\n", get_version);
-	
-	printf("all hash array keys (%d)\n", hash_array->meta.count);
-	cstr* keys = structx->get_hash_array_keys(hash_array);
-	LIBX_FORI(0, hash_array->meta.count, 1) {
-		printf("%s |", keys[i]);
-	}
-	printf("\n");
-	structx->destroy_array(keys);
-	
-	printf("all hash array values (%d)\n", hash_array->meta.count);
-	void** values = structx->get_hash_array_values(hash_array);
-	LIBX_FORI(0, hash_array->meta.count, 1) {
-		if (i == 1) printf("%s |", values[i]);
-		else printf("%d |", *(i32*)values[i]);
-	}
-	printf("\n");
-	structx->destroy_array(values);
-	
-	Key_Value pulled;
-	if (structx->pull_hash_array(hash_array, "age", &pulled)) {
-		printf("pulled (key)%s | (value)%d\n", pulled.key, *(i32*)pulled.value);
-	}
-	printf("hash meta 3: (size)%d (stride)%d (count)%d (max)%d\n",
-		hash_array->meta.size,
-		hash_array->meta.stride,
-		hash_array->meta.count,
-		hash_array->meta.max
-	);
-
-	keys = structx->get_hash_array_keys(hash_array);
-	LIBX_FORI(0, hash_array->meta.count, 1) {
-		printf("%s |", keys[i]);
-	}
-	printf("\n");
-	structx->destroy_array(keys);
-	
-	printf("all hash array values (%d)\n", hash_array->meta.count);
-	values = structx->get_hash_array_values(hash_array);
-	LIBX_FORI(0, hash_array->meta.count, 1) {
-		if (i == 0) printf("%s |", values[i]);
-		else printf("%d |", *(i32*)values[i]);
-	}
-	printf("\n");
-	structx->destroy_array(values);
-	
-	structx->destroy_hash_array(hash_array);
+	hash_array_test();
 
 	libx_cleanup_structs();
 	printf("OK!\n");
