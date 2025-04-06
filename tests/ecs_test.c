@@ -36,6 +36,21 @@ u8 get_component(u32 entity, void* component) {
     return LIBX_TRUE;
 }
 
+u8 pre_component_system(u32 entity) {
+    printf("(PRE) Entity In My Component System: %d\n", entity);
+    return LIBX_TRUE;
+}
+
+u8 main_component_system(u32 entity) {
+    printf("(MAIN) Entity In My Component System: %d\n", entity);
+    return LIBX_TRUE;
+}
+
+u8 post_component_system(u32 entity) {
+    printf("(POST) Entity In My Component System: %d\n", entity);
+    return LIBX_TRUE;
+}
+
 int main() {
     libx_init_memory();
     libx_init_structs();
@@ -44,6 +59,14 @@ int main() {
     // register a component
     if (ecsx->register_component(0, &storage, add_component, rem_component, get_component)) {
         printf("Component Registered!\n");
+    }
+
+    if (
+        ecsx->register_system(0, "main", main_component_system) &&
+        ecsx->register_system(0, "pre", pre_component_system) &&
+        ecsx->register_system(0, "post", post_component_system)
+    ) {
+        printf("Component System Registered!\n");
     }
 
     // create an entity
@@ -85,9 +108,14 @@ int main() {
         if (e == ENTITY_MAX) continue;    // skip sentinnel values
         printf("Entity Has My Component: %d\n", e);
     }
-    structx->destroy_array(buffer);
+    structx->array.destroy_array(buffer);
+
+    if (ecsx->run_system(0, "main")) printf("Component System Ran!\n");
+    if (ecsx->run_systems(0)) printf("All Component Systems Ran!\n");
         
-    ecsx->unregister_component(0);
+    if (ecsx->unregister_systems(0)) printf("All Component Systems Unregistered!\n");
+    if (ecsx->unregister_component(0)) printf("Component Unregistered!\n");
+
     libx_cleanup_ecs();
     libx_cleanup_structs();
     libx_cleanup_memory();
