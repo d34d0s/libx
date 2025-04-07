@@ -18,6 +18,17 @@ u32 _create_entity_impl(void) {
     return entity;
 }
 
+u32 _create_entity_with_impl(u8 count, u8* ids) {
+    if (count < 0 || count > COMPONENT_MAX) return LIBX_FALSE;
+    u8 result = 0;
+    u32 entity = ecsx->create_entity();
+    LIBX_FORI(0, count, 1) {
+        result = ecsx->add_component(ids[i], entity);
+        if (!result) printf("failed to create (entity)%d with component%d:\n", entity, ids[i]);
+    }
+    return entity;
+}
+
 void _destroy_entity_impl(u32 entity) {
     if (entity >= ENTITY_MAX || entity < 0) return;
     
@@ -261,6 +272,7 @@ u8 libx_init_ecs(void) {
     ecsx->component_manager.count = 0;
 
     ecsx->create_entity = _create_entity_impl;
+    ecsx->create_entity_with = _create_entity_with_impl;
     ecsx->destroy_entity = _destroy_entity_impl;
 
     ecsx->register_component = _register_component_impl;

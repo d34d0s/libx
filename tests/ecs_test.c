@@ -60,6 +60,9 @@ int main() {
     if (ecsx->register_component(0, &storage, add_component, rem_component, get_component)) {
         printf("Component Registered!\n");
     }
+    if (ecsx->register_component(1, &storage, add_component, rem_component, get_component)) {
+        printf("Component Registered!\n");
+    }
 
     if (
         ecsx->register_system(0, "main", main_component_system) &&
@@ -69,14 +72,9 @@ int main() {
         printf("Component System Registered!\n");
     }
 
-    // create an entity
-    u32 entity = ecsx->create_entity();
+    // create an entity with our components
+    u32 entity = ecsx->create_entity_with(2, (u8[]){0, 1});
     
-    // add our component
-    if (ecsx->add_component(0, entity)) {
-        printf("Added Component: %d To Entity: %d\n", 0, entity);
-    }
-
     // since the component storage exists on the caller side...
     // the caller can manipulate entity-component data
     storage.ivalue[entity] = 123321;
