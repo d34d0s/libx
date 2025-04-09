@@ -53,7 +53,7 @@ u8 post_component_system(u32 entity) {
 
 int main() {
     libx_init_memory();
-    libx_init_structs();
+    libx_init_dsx();
     libx_init_ecs();
 
     // register a component
@@ -115,7 +115,7 @@ int main() {
     if (ecsx->unregister_component(0)) printf("Component Unregistered!\n");
 
     libx_cleanup_ecs();
-    libx_cleanup_structs();
+    libx_cleanup_dsx();
     libx_cleanup_memory();
     return 0;
 }

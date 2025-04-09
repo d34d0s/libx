@@ -1,8 +1,7 @@
-#pragma once
+#ifndef LIBX_ECSX_H
+#define LIBX_ECSX_H
 
-#include "libx_def.h"
-#include "libx_memory.h"
-#include "libx_structs.h"
+#include <libx/include/libx_def.h>
 
 #define COMPONENT_MAX   (1 << 5)
 #define SYSTEM_MAX      (1 << 3)
@@ -13,7 +12,8 @@ typedef u8 (*COMPONENT_REM_FPTR)(u32 entity);
 typedef u8 (*COMPONENT_GET_FPTR)(u32 entity, void* component);
 typedef u8 (*COMPONENT_SYSTEM_FPTR)(u32 entity);
 
-typedef struct _libx_ecs_api {
+typedef struct Ecsx {
+    u8 init;
     struct entity_manager {
         u32* queue;
         u32* mask;
@@ -57,9 +57,9 @@ typedef struct _libx_ecs_api {
     u8 (*rem_component)(u8 id, u32 entity);
     u8 (*has_component)(u8 id, u32 entity);
     u8 (*get_component)(u8 id, u32 entity, void* component);
-    
-} _libx_ecs_api;
-extern _libx_ecs_api* ecsx;
+} Ecsx;
 
-LIBX_API u8 libx_init_ecs(void);
-LIBX_API void libx_cleanup_ecs(void);
+LIBX_API u8 libx_init_ecsx(void);
+LIBX_API void libx_cleanup_ecsx(void);
+
+#endif  // LIBX_ECSX_H

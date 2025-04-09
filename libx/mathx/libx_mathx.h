@@ -1,7 +1,8 @@
-#pragma once
+#ifndef LIBX_MATHX_H
+#define LIBX_MATHX_H
 
 #include <math.h>
-#include "libx_def.h"
+#include <libx/include/libx_def.h>
 
 #define LIBX_PI 3.14159265358979323846
 
@@ -17,7 +18,8 @@ typedef struct Mat3 { f32  m[9]; } Mat3;
 typedef struct Mat4 { f32 m[16]; } Mat4;
 /* ---------------- MATRIX 4 ---------------- */
 
-typedef struct _libx_math_api {
+typedef struct Mathx {
+    u8 init;
     struct scalar {
         // Scalar Math
         f32 (*radians)(f32 deg);
@@ -97,8 +99,9 @@ typedef struct _libx_math_api {
         */
         Mat4 (*perspective)(f32 fov, f32 aspect, f32 near, f32 far);
     } mat;    
-} _libx_math_api;
-extern _libx_math_api* mathx;
+} Mathx;
 
-LIBX_API u8 libx_init_math(void);
-LIBX_API void libx_cleanup_math(void);
+LIBX_EXPOSE u8 libx_init_mathx(void);
+LIBX_EXPOSE void libx_cleanup_mathx(void);
+
+#endif  // LIBX_MATHX_H

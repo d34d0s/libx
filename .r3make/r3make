@@ -4,8 +4,7 @@
         "libx": {
             "c-defines": ["DLL_EXPORT"],
             "src-dirs": ["../libx/src"],
-            "inc-dirs": ["../libx/include"],
-            
+            "inc-dirs": ["../"],
             "out-type": "lib",
             "out-name": "libx",
             "out-dir": "../bin"
@@ -18,7 +17,7 @@
                 }
             },
             "src-dirs": ["../tests"],
-            "inc-dirs": ["../libx/include"],
+            "inc-dirs": ["../"],
             "lib-links": {"libx": "../bin"},
             "out-type": "exe",
             "out-name": null,

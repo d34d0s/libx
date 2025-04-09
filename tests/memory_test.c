@@ -1,5 +1,17 @@
 #include "../libx/include/libx_memory.h"
 
+u8 bit_set(u8* byte, u8 bit) {
+    return (!byte || !bit || bit > 8) ? LIBX_FALSE : (*byte |= (1 << bit));
+}
+
+u8 bit_rem(u8* byte, u8 bit) {
+    return (!byte || !*byte || !bit || bit > 8) ? LIBX_FALSE : (*byte &= ~(1 << bit));
+}
+
+u8 bit_mask(u8 byte, u8 mask) {
+    return (!byte || !mask) ? LIBX_FALSE : ((byte & mask) == mask);
+}
+
 void main() {
     libx_init_memory();
 
@@ -15,7 +27,6 @@ void main() {
     LIBX_FORI(0, 2, 1) printf("value: %0.1f\n", mem[i]);
 
     memx->dealloc(mem);
-    
     
     Linear_Allocator* lalloc = memx->create_linear_allocator(1024, 16);
 
@@ -52,7 +63,17 @@ void main() {
     
     f32* values2 = memx->arena_alloc(aalloc->next, sizeof(f32) * 4, 16);
 
-    memx->destroy_arena_allocator(aalloc); // collapse the entire arena
+    memx->destroy_arena_allocator(aalloc); // collapse the entire arena    
+
+    Blob blob = {.size = sizeof(f32) * 5};
+    memx->blob_alloc(&blob, 8);
+    ((f32*)blob.data)[0] = 4.0; // store an iterator value within the blob
+    LIBX_FORI(1, 5, 1) ((f32*)blob.data)[i] = 418.0 + i;
+    LIBX_FORI(1, ((f32*)blob.data)[0]+1, 1) printf("blob.data[%d] = %0.1f\n", i, *(f32*)(((u8*)blob.data) + (sizeof(f32) * i)));
+    memx->blob_dealloc(&blob);
+
+    Buffer buffer = {.bits = BIT_BUFFER_64};
+    write_bitbuffer(&buffer, 9);
 
     libx_cleanup_memory();
     printf("OK!\n");

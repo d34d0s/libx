@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LIBX_DSX_H
+#define LIBX_DSX_H
 
 #include "libx_def.h"
 
@@ -40,8 +41,8 @@ typedef struct Hash_Array {
 } Hash_Array;
 /* ---------------- HASH ARRAY ---------------- */
 
-
-typedef struct _libx_structs_api {
+typedef struct Dsx {
+    u8 init;
     struct array {
         void (*destroy_array)(void* array);
 
@@ -119,10 +120,9 @@ typedef struct _libx_structs_api {
         void (*destroy_hash_array)(Hash_Array* array);
 
     } array;
+} Dsx;
 
-    
-} _libx_structs_api;
-extern _libx_structs_api* structx;
+LIBX_API u8 libx_init_dsx(void);
+LIBX_API void libx_cleanup_dsx(void);
 
-LIBX_API u8 libx_init_structs(void);
-LIBX_API void libx_cleanup_structs(void);
+#endif  // LIBX_DSX_H

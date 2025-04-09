@@ -55,7 +55,7 @@ void hash_array_test(void) {
 
 void main() {
 	libx_init_memory();
-	libx_init_structs();
+	libx_init_dsx();
 
 	f32* verts = structx->array.create_array(sizeof(f32), 3);
 
@@ -126,6 +126,6 @@ void main() {
 
 	hash_array_test();
 
-	libx_cleanup_structs();
+	libx_cleanup_dsx();
 	printf("OK!\n");
 }

@@ -1,10 +1,10 @@
-#pragma once
-
-#include <math.h>
-#include <stdio.h>
+#ifdef LIBX_STDLIB
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>
+#endif
+
+#include <stdio.h>
 
 typedef char*               str;
 typedef const char*         cstr;
@@ -22,7 +22,8 @@ typedef unsigned short      u16;
 typedef unsigned int        u32;
 typedef unsigned long long  u64;
 
-#define LIBX_NOTHING ((cstr)164598)
+typedef intptr_t            iptr;
+typedef uintptr_t           uptr;
 
 #define LIBX_TRUE   1
 #define LIBX_FALSE  0
@@ -35,9 +36,11 @@ typedef unsigned long long  u64;
 #define LIBX_IP2(x) ((x & (x - 1)) == 0)
 #define LIBX_ALIGN(p, a) (((p) + ((a) - 1)) & ~((a) - 1))
 
+#define LIBX_IGNORE(value)              ((void)v)
 #define LIBX_DEFAULT(type)              (type){0}
 #define LIBX_LITERAL(type, value)       (type){value}
-#define LIBX_LITERAL_PTR(type, value)  &(type){value}
+#define LIBX_DEREF(type, value)         *(type*)value
+#define LIBX_LITERAL_PTR(type, value)   &(type){value}
 
 #define LIBX_WRAPI(value, limit) ((value) % (limit))
 #define LIBX_WRAPF(value, limit) (fmod((f64)(value), (limit)))
@@ -75,18 +78,20 @@ typedef unsigned long long  u64;
 
 #ifdef DLL_EXPORT
     #ifdef _MSC_VER
-        #define LIBX_API __declspec(dllexport)
+        #define LIBX_EXPOSE __declspec(dllexport)
     #elif #defined (__GNUC__) || defined (__clang__)
-        #define LIBX_API __attribute__((visibility("default")))
+        #define LIBX_EXPOSE __attribute__((visibility("default")))
     #else
-        #define LIBX_API
+        #define LIBX_EXPOSE
     #endif
 #else
     #ifdef _MSC_VER
-        #define LIBX_API __declspec(dllimport)
+        #define LIBX_EXPOSE __declspec(dllimport)
     #elif defined(__GNUC__) || defined(__clang__)
-        #define LIBX_API __attribute__((visibility("default")))
+        #define LIBX_EXPOSE __attribute__((visibility("default")))
     #else
-        #define LIBX_API
+        #define LIBX_EXPOSE
     #endif
 #endif
+
+#endif  // LIBX_DEF_H

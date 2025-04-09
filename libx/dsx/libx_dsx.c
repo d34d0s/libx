@@ -1,13 +1,10 @@
-#include "../include/libx_memory.h"
-#include "../include/libx_structs.h"
-
-_libx_structs_api* structx = NULL;
+#include <libx/include/libx.h>
 
 /* ---------------- ARRAY ---------------- */
 #define LIBX_ARRAY_HEAD_SIZE (sizeof(u32) * 4)
 
 void* _create_array_impl(u32 stride, u32 max) {
-    u32* head = (u32*)memx->alloc(LIBX_ARRAY_HEAD_SIZE + (stride * max), 8);
+    u32* head = (u32*)libx->memx.alloc(LIBX_ARRAY_HEAD_SIZE + (stride * max), 8);
     if (!head) return NULL; // error: out of memory!
 
     head[LIBX_ARRAY_SIZE_FIELD] = LIBX_ARRAY_HEAD_SIZE + (stride * max);
@@ -60,7 +57,7 @@ void _push_array_impl(void* array, void* invalue) {
 	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
     u32 index = head[LIBX_ARRAY_COUNT_FIELD];
 
-    structx->array.put_array(array, index, invalue);
+    libx->dsx.array.put_array(array, index, invalue);
 }
 
 void _pop_array_impl(void* array, void* outvalue) {
@@ -71,7 +68,7 @@ void _pop_array_impl(void* array, void* outvalue) {
 
     u32 index = (head[LIBX_ARRAY_COUNT_FIELD] - 1);
 
-    structx->array.pull_array(array, index, outvalue);
+    libx->dsx.array.pull_array(array, index, outvalue);
 }
 
 void* _resize_array_impl(void* array, u32 max) {
@@ -83,7 +80,7 @@ void* _resize_array_impl(void* array, u32 max) {
     u32 stride = head[LIBX_ARRAY_STRIDE_FIELD];
     u32 newsize = LIBX_ARRAY_HEAD_SIZE + (stride * max);
 
-    u32* newhead = (u32*)memx->realloc(head, newsize, 8);
+    u32* newhead = (u32*)libx->memx.realloc(head, newsize, 8);
     if (!newhead) return NULL;
 
     newhead[LIBX_ARRAY_SIZE_FIELD] = LIBX_ARRAY_HEAD_SIZE + (stride * max);
@@ -95,7 +92,7 @@ void* _resize_array_impl(void* array, u32 max) {
 }
 
 void _destroy_array_impl(void* array) {
-    memx->dealloc((void*)((u8*)array - LIBX_ARRAY_HEAD_SIZE));
+    libx->memx.dealloc((void*)((u8*)array - LIBX_ARRAY_HEAD_SIZE));
 }
 
 Array_Head _get_array_head_impl(void* array) {
@@ -124,10 +121,10 @@ void _set_array_head_impl(void* array, u32 field, u32 value) {
 Linked_Array* _create_linked_array_impl(Linked_Array* array, u32 stride, u32 max) {
     if (!stride || !max) return NULL;   // error: value error!
 
-    Linked_Array* new = (Linked_Array*)memx->alloc(sizeof(Linked_Array), 8);
+    Linked_Array* new = (Linked_Array*)libx->memx.alloc(sizeof(Linked_Array), 8);
     if (!new) return NULL;  // error: out of memory!
 
-    new->array = structx->array.create_array(stride, max);
+    new->array = libx->dsx.array.create_array(stride, max);
     if (!new->array) return NULL;    // error: out of memory!
 
     new->last = NULL;
@@ -141,7 +138,7 @@ Linked_Array* _create_linked_array_impl(Linked_Array* array, u32 stride, u32 max
         array->next = new;
     }
 
-    new->meta = structx->array.get_array_head(new->array);
+    new->meta = libx->dsx.array.get_array_head(new->array);
     return new;
 }
 
@@ -151,8 +148,8 @@ void _destroy_linked_array_impl(Linked_Array* array) {
     if (array->next) array->next->last = array->last;
     if (array->last) array->last->next = array->next;
     
-    structx->array.destroy_array(array->array);
-    memx->dealloc(array);
+    libx->dsx.array.destroy_array(array->array);
+    libx->memx.dealloc(array);
     
     array->meta = (Array_Head){0};
     array->array = NULL;
@@ -166,18 +163,18 @@ void _collapse_linked_array_impl(Linked_Array* array) {
     Linked_Array* next = array->next;
     while (next) {
         Linked_Array* temp = next->next;
-        structx->array.destroy_linked_array(next);
+        libx->dsx.array.destroy_linked_array(next);
         next = temp;
     }
 
 	Linked_Array* last = array->last;
     while (last) {
         Linked_Array* temp = last->last;
-        structx->array.destroy_linked_array(last);
+        libx->dsx.array.destroy_linked_array(last);
         last = temp;
     }
     
-	structx->array.destroy_linked_array(array);
+	libx->dsx.array.destroy_linked_array(array);
 }
 /* ---------------- LINKED ARRAY ---------------- */
 
@@ -195,7 +192,7 @@ i32 _fnv1a_hash(cstr string) {
 i32 _probe_key_hash_array(Hash_Array* array, cstr key) {
     if (!array || !key) return -1;
 
-    Array_Head meta = structx->array.get_array_head(array->map);
+    Array_Head meta = libx->dsx.array.get_array_head(array->map);
 
     u32 index = _fnv1a_hash(key) % meta.max;
     u32 start = index;
@@ -212,7 +209,7 @@ i32 _probe_key_hash_array(Hash_Array* array, cstr key) {
 i32 _probe_slot_hash_array(Hash_Array* array, cstr key) {
     if (!array || !key) return -1;
     
-    Array_Head meta = structx->array.get_array_head(array->map);
+    Array_Head meta = libx->dsx.array.get_array_head(array->map);
     
     i32 index = _fnv1a_hash(key) % meta.max;
     i32 start = index;
@@ -228,12 +225,12 @@ i32 _probe_slot_hash_array(Hash_Array* array, cstr key) {
 }
 
 Hash_Array* _create_hash_array_impl(u32 max) {
-    Hash_Array* array = (Hash_Array*)memx->alloc(sizeof(Hash_Array), 8);
+    Hash_Array* array = (Hash_Array*)libx->memx.alloc(sizeof(Hash_Array), 8);
     if (!array) return NULL;  // error: out of memory!
 
-    array->map = (Key_Value*)structx->array.create_array(sizeof(Key_Value), max);
+    array->map = (Key_Value*)libx->dsx.array.create_array(sizeof(Key_Value), max);
     if (!array->map) {   // error: out of memory!
-        memx->dealloc(array);
+        libx->memx.dealloc(array);
         return NULL;
     }
 
@@ -244,22 +241,22 @@ Hash_Array* _create_hash_array_impl(u32 max) {
         };
     }
 
-    array->meta = structx->array.get_array_head(array->map);
+    array->meta = libx->dsx.array.get_array_head(array->map);
     return array;
 }
 
 u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
     if (!array || !key || !value) return LIBX_FALSE;  // error: null ptr!
 
-    Array_Head meta = structx->array.get_array_head(array->map);
+    Array_Head meta = libx->dsx.array.get_array_head(array->map);
     if (meta.count > (u32)(meta.max * 0.7)) {
-        Key_Value* temp = (Key_Value*)structx->array.create_array(sizeof(Key_Value), meta.max * 2);
+        Key_Value* temp = (Key_Value*)libx->dsx.array.create_array(sizeof(Key_Value), meta.max * 2);
         if (!temp) return LIBX_FALSE;  // error: out of memory!
 
         ((u32*)((u8*)temp - LIBX_ARRAY_HEAD_SIZE))[LIBX_ARRAY_COUNT_FIELD] = meta.count;
         memcpy(temp, array->map, meta.stride * meta.max);
         
-        structx->array.destroy_array(array->map);
+        libx->dsx.array.destroy_array(array->map);
         array->map = temp;
     }
     
@@ -269,10 +266,10 @@ u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
     if (array->map[index].key && strcmp(array->map[index].key, key) == 0) {
         array->map[index].value = value;
     } else {
-        structx->array.put_array(array->map, index, &(Key_Value){ .value = value, .key = strdup(key)});
+        libx->dsx.array.put_array(array->map, index, &(Key_Value){ .value = value, .key = strdup(key)});
     }
     
-    array->meta = structx->array.get_array_head(array->map);
+    array->meta = libx->dsx.array.get_array_head(array->map);
     return LIBX_TRUE;
 }
 
@@ -291,21 +288,21 @@ u8 _pull_hash_array_impl(Hash_Array* array, cstr key, Key_Value* out) {
     i32 index = _probe_key_hash_array(array, key);
     if (index == -1) return LIBX_FALSE;
 
-    structx->array.pull_array(array->map, index, out);
-    array->meta = structx->array.get_array_head(array->map);
+    libx->dsx.array.pull_array(array->map, index, out);
+    array->meta = libx->dsx.array.get_array_head(array->map);
     return LIBX_TRUE;
 }
 
 void _destroy_hash_array_impl(Hash_Array* array) {
     if (!array) return;   // error: null ptr!
-    structx->array.destroy_array(array->map);
-    memx->dealloc(array);
+    libx->dsx.array.destroy_array(array->map);
+    libx->memx.dealloc(array);
 }
 
 cstr* _get_hash_array_keys_impl(Hash_Array* array) {
     u8 key = 0;
 	
-    cstr* keys = structx->array.create_array(sizeof(cstr), array->meta.count);
+    cstr* keys = libx->dsx.array.create_array(sizeof(cstr), array->meta.count);
     if (!keys) return NULL; // error: out of memory!
 
 	LIBX_FORI(0, array->meta.max, 1)
@@ -319,7 +316,7 @@ cstr* _get_hash_array_keys_impl(Hash_Array* array) {
 void** _get_hash_array_values_impl(Hash_Array* array) {
     u8 value = 0;
 	
-    void** values = structx->array.create_array(sizeof(void*), array->meta.count);
+    void** values = libx->dsx.array.create_array(sizeof(void*), array->meta.count);
     if (!values) return NULL; // error: out of memory!
 
 	LIBX_FORI(0, array->meta.max, 1)
@@ -333,44 +330,41 @@ void** _get_hash_array_values_impl(Hash_Array* array) {
 
 
 /* ---------------- API ---------------- */
-u8 libx_init_structs(void) {
-    if (structx != NULL) return LIBX_TRUE;    // redundant call: struct API already initialized!
+u8 libx_init_dsx(void) {
+    if (!libx) return LIBX_FALSE; // error: null ptr!
+    if (libx->dsx.init) return LIBX_TRUE;    // redundant call: Dsx API already initialized!
 
-    if (!memx) {
-        printf("libx memory api not initialized!\n");
-        return LIBX_FALSE; // error: failed to initialize memory api!
+    if (!libx->memx.init) {
+        printf("libx Memx api not initialized!\n");
+        return LIBX_FALSE; // error: failed to initialize Memx API!
     }
 
-    structx = (_libx_structs_api*)memx->alloc(sizeof(_libx_structs_api), 8);
-    if (!structx) return 0;
+    libx->dsx.array.create_array = _create_array_impl;
+    libx->dsx.array.pop_array = _pop_array_impl;
+    libx->dsx.array.put_array = _put_array_impl;
+    libx->dsx.array.push_array = _push_array_impl;
+    libx->dsx.array.pull_array = _pull_array_impl;
+    libx->dsx.array.resize_array = _resize_array_impl;
+    libx->dsx.array.destroy_array = _destroy_array_impl;
+    libx->dsx.array.get_array_head = _get_array_head_impl;
 
-    structx->array.create_array = _create_array_impl;
-    structx->array.pop_array = _pop_array_impl;
-    structx->array.put_array = _put_array_impl;
-    structx->array.push_array = _push_array_impl;
-    structx->array.pull_array = _pull_array_impl;
-    structx->array.resize_array = _resize_array_impl;
-    structx->array.destroy_array = _destroy_array_impl;
-    structx->array.get_array_head = _get_array_head_impl;
+    libx->dsx.array.create_linked_array = _create_linked_array_impl;
+    libx->dsx.array.destroy_linked_array = _destroy_linked_array_impl;
+    libx->dsx.array.collapse_linked_array = _collapse_linked_array_impl;
 
-    structx->array.create_linked_array = _create_linked_array_impl;
-    structx->array.destroy_linked_array = _destroy_linked_array_impl;
-    structx->array.collapse_linked_array = _collapse_linked_array_impl;
-
-    structx->array.create_hash_array = _create_hash_array_impl;
-    structx->array.put_hash_array = _put_hash_array_impl;
-    structx->array.get_hash_array = _get_hash_array_impl;
-    structx->array.get_hash_array_keys = _get_hash_array_keys_impl;
-    structx->array.get_hash_array_values = _get_hash_array_values_impl;
-    structx->array.pull_hash_array = _pull_hash_array_impl;
-    structx->array.destroy_hash_array = _destroy_hash_array_impl;
+    libx->dsx.array.create_hash_array = _create_hash_array_impl;
+    libx->dsx.array.put_hash_array = _put_hash_array_impl;
+    libx->dsx.array.get_hash_array = _get_hash_array_impl;
+    libx->dsx.array.get_hash_array_keys = _get_hash_array_keys_impl;
+    libx->dsx.array.get_hash_array_values = _get_hash_array_values_impl;
+    libx->dsx.array.pull_hash_array = _pull_hash_array_impl;
+    libx->dsx.array.destroy_hash_array = _destroy_hash_array_impl;
     
     return 1;
 }
 
-void libx_cleanup_structs(void) {
-    if (structx == NULL) return;    // error: struct API not initialized!
-    memx->dealloc(structx);
-    structx = NULL;
+void libx_cleanup_dsx(void) {
+    if (!libx->dsx.init) return;    // error: Dsx API not initialized!
+	libx->dsx	= (Dsx){NULL};
 }
 /* ---------------- API ---------------- */

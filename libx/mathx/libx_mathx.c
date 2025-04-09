@@ -1,8 +1,4 @@
-#include "../include/libx_math.h"
-#include "../include/libx_memory.h"
-
-_libx_math_api* mathx = NULL;
-
+#include <libx/include/libx.h>
 
 /* ---------------- UTILITY ------------- */
 void _print_vec2_impl(cstr name, Vec2 vec) {
@@ -98,8 +94,8 @@ f32 _mag_vec2_impl(Vec2 v) {
 
 // Normalize a Vec2
 Vec2 _norm_vec2_impl(Vec2 v) {
-    f32 length = mathx->vec.mag2(v);
-    return mathx->vec.scale2(v, 1.0f / length);
+    f32 length = libx->mathx.vec.mag2(v);
+    return libx->mathx.vec.scale2(v, 1.0f / length);
 }
 /* ---------------- VEC2 ---------------- */
 
@@ -147,8 +143,8 @@ f32 _mag_vec3_impl(Vec3 v) {
 
 // Normalize a vec
 Vec3 _norm_vec3_impl(Vec3 v) {
-    f32 length = mathx->vec.mag3(v);
-    return mathx->vec.scale3(v, 1.0f / length);
+    f32 length = libx->mathx.vec.mag3(v);
+    return libx->mathx.vec.scale3(v, 1.0f / length);
 }
 
 // Cross product of two vectors
@@ -195,8 +191,8 @@ f32 _mag_vec4_impl(Vec4 v) {
 
 // Normalize a Vec4
 Vec4 _norm_vec4_impl(Vec4 v) {
-    f32 length = mathx->vec.mag4(v);
-    return mathx->vec.scale4(v, 1.0f / length);
+    f32 length = libx->mathx.vec.mag4(v);
+    return libx->mathx.vec.scale4(v, 1.0f / length);
 }
 /* ---------------- VEC4 ---------------- */
 
@@ -310,7 +306,7 @@ Mat4 _trans4_impl(f32 x, f32 y, f32 z) {
 }
 
 Mat4 _rotx4_impl(f32 angle) {
-    f32 rad = mathx->scalar.radians(angle);
+    f32 rad = libx->mathx.scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
     Mat4 result = {
@@ -323,7 +319,7 @@ Mat4 _rotx4_impl(f32 angle) {
 }
 
 Mat4 _roty4_impl(f32 angle) {
-    f32 rad = mathx->scalar.radians(angle);
+    f32 rad = libx->mathx.scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
     Mat4 result = {
@@ -336,7 +332,7 @@ Mat4 _roty4_impl(f32 angle) {
 }
 
 Mat4 _rotz4_impl(f32 angle) {
-    f32 rad = mathx->scalar.radians(angle);
+    f32 rad = libx->mathx.scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
     Mat4 result = {
@@ -349,12 +345,12 @@ Mat4 _rotz4_impl(f32 angle) {
 }
 
 Mat4 _rot4_impl(Vec3 axis, f32 angle) {
-    Mat4 result = mathx->mat.identity4();
-    f32 rad = mathx->scalar.radians(angle);
+    Mat4 result = libx->mathx.mat.identity4();
+    f32 rad = libx->mathx.scalar.radians(angle);
     f32 cos_theta = cosf(rad);
     f32 sin_theta = sinf(rad);
 
-    f32 axis_len = mathx->vec.mag3(axis);
+    f32 axis_len = libx->mathx.vec.mag3(axis);
     if (axis_len > 0.0f) {
         axis.x /= axis_len;
         axis.y /= axis_len;
@@ -390,17 +386,17 @@ Mat4 _mult4_impl(Mat4 a, Mat4 b) {
 }
 
 Mat4 _lookat_impl(Vec3 eye, Vec3 center, Vec3 up) {
-    Vec3 target = mathx->vec.add3(eye, center);
+    Vec3 target = libx->mathx.vec.add3(eye, center);
     
-    Vec3 f = mathx->vec.norm3(mathx->vec.sub3(target, eye)); 
-    Vec3 s = mathx->vec.norm3(mathx->vec.cross3(f, up));
-    Vec3 u = mathx->vec.norm3(mathx->vec.cross3(s, f));
+    Vec3 f = libx->mathx.vec.norm3(libx->mathx.vec.sub3(target, eye)); 
+    Vec3 s = libx->mathx.vec.norm3(libx->mathx.vec.cross3(f, up));
+    Vec3 u = libx->mathx.vec.norm3(libx->mathx.vec.cross3(s, f));
 
     Mat4 result = {
         s.x, u.x,-f.x, 0.0f,
         s.y, u.y,-f.y, 0.0f,
         s.z, u.z,-f.z, 0.0f,
-       -mathx->vec.dot3(s, eye), -mathx->vec.dot3(u, eye), mathx->vec.dot3(f, eye), 1.0f,
+       -libx->mathx.vec.dot3(s, eye), -libx->mathx.vec.dot3(u, eye), libx->mathx.vec.dot3(f, eye), 1.0f,
     };
     
     return result;
@@ -427,7 +423,7 @@ Mat4 _ortho_impl(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
 }
 
 Mat4 _perspective_impl(f32 fovy, f32 aspect, f32 near, f32 far) {
-    f32 tfov = tanf(mathx->scalar.radians(fovy) / 2.0f);
+    f32 tfov = tanf(libx->mathx.scalar.radians(fovy) / 2.0f);
     f32 fpn = far + near;
     f32 fmn = far - near;
     f32 fn = far * near;
@@ -443,91 +439,83 @@ Mat4 _perspective_impl(f32 fovy, f32 aspect, f32 near, f32 far) {
 }
 /* ---------------- MAT4 ---------------- */
 
-u8 libx_init_math(void) {
-    if (mathx != NULL) return LIBX_TRUE;    // redundant call: math API already initialized!
-
-    if (!memx) {
-        printf("libx memory api not initialized!\n");
-        return LIBX_FALSE; // error: failed to initialize memory api!
-    }
-
-    mathx = memx->alloc(sizeof(_libx_math_api), 8);
-    if (!mathx) return LIBX_FALSE;   // error: out of memory!
+u8 libx_init_mathx(void) {
+    if (!libx) return LIBX_FALSE; // error: null ptr!
+    if (libx->mathx.init) return LIBX_TRUE;    // redundant call: Mathx API already initialized!
 
     // SCALAR API INIT
-    mathx->scalar.radians = _to_radians_impl;
+    libx->mathx.scalar.radians = _to_radians_impl;
 
     // VECTOR API INIT
-    mathx->vec.print2 = _print_vec2_impl;
-    mathx->vec.print3 = _print_vec3_impl;
-    mathx->vec.print4 = _print_vec4_impl;
+    libx->mathx.vec.print2 = _print_vec2_impl;
+    libx->mathx.vec.print3 = _print_vec3_impl;
+    libx->mathx.vec.print4 = _print_vec4_impl;
     
-    mathx->vec.vec2 = _new_vec2_impl;
-    mathx->vec.add2 = _add_vec2_impl;
-    mathx->vec.sub2 = _sub_vec2_impl;
-    mathx->vec.dot2 = _dot_vec2_impl;
-    mathx->vec.norm2 = _norm_vec2_impl;
-    mathx->vec.mag2 = _mag_vec2_impl;
-    mathx->vec.scale2 = _scale_vec2_impl;
+    libx->mathx.vec.vec2 = _new_vec2_impl;
+    libx->mathx.vec.add2 = _add_vec2_impl;
+    libx->mathx.vec.sub2 = _sub_vec2_impl;
+    libx->mathx.vec.dot2 = _dot_vec2_impl;
+    libx->mathx.vec.norm2 = _norm_vec2_impl;
+    libx->mathx.vec.mag2 = _mag_vec2_impl;
+    libx->mathx.vec.scale2 = _scale_vec2_impl;
     
-    mathx->vec.vec3 = _new_vec3_impl;
-    mathx->vec.add3 = _add_vec3_impl;
-    mathx->vec.sub3 = _sub_vec3_impl;
-    mathx->vec.dot3 = _dot_vec3_impl;
-    mathx->vec.norm3 = _norm_vec3_impl;
-    mathx->vec.mag3 = _mag_vec3_impl;
-    mathx->vec.scale3 = _scale_vec3_impl;
-    mathx->vec.cross3 = _cross_vec3_impl;
+    libx->mathx.vec.vec3 = _new_vec3_impl;
+    libx->mathx.vec.add3 = _add_vec3_impl;
+    libx->mathx.vec.sub3 = _sub_vec3_impl;
+    libx->mathx.vec.dot3 = _dot_vec3_impl;
+    libx->mathx.vec.norm3 = _norm_vec3_impl;
+    libx->mathx.vec.mag3 = _mag_vec3_impl;
+    libx->mathx.vec.scale3 = _scale_vec3_impl;
+    libx->mathx.vec.cross3 = _cross_vec3_impl;
     
-    mathx->vec.vec4 = _new_vec4_impl;
-    mathx->vec.add4 = _add_vec4_impl;
-    mathx->vec.sub4 = _sub_vec4_impl;
-    mathx->vec.dot4 = _dot_vec4_impl;
-    mathx->vec.norm4 = _norm_vec4_impl;
-    mathx->vec.mag4 = _mag_vec4_impl;
-    mathx->vec.scale4 = _scale_vec4_impl;
+    libx->mathx.vec.vec4 = _new_vec4_impl;
+    libx->mathx.vec.add4 = _add_vec4_impl;
+    libx->mathx.vec.sub4 = _sub_vec4_impl;
+    libx->mathx.vec.dot4 = _dot_vec4_impl;
+    libx->mathx.vec.norm4 = _norm_vec4_impl;
+    libx->mathx.vec.mag4 = _mag_vec4_impl;
+    libx->mathx.vec.scale4 = _scale_vec4_impl;
     
-    mathx->mat.print2 = _print_mat2_impl;
-    mathx->mat.print3 = _print_mat3_impl;
-    mathx->mat.print4 = _print_mat4_impl;
+    libx->mathx.mat.print2 = _print_mat2_impl;
+    libx->mathx.mat.print3 = _print_mat3_impl;
+    libx->mathx.mat.print4 = _print_mat4_impl;
 
     // MATRIX 2
-    mathx->mat.identity2 = _identity2_impl;
-    mathx->mat.transpose2 = _transpose2_impl;
+    libx->mathx.mat.identity2 = _identity2_impl;
+    libx->mathx.mat.transpose2 = _transpose2_impl;
     
-    mathx->mat.mult2 = _mul_mat2_impl;
+    libx->mathx.mat.mult2 = _mul_mat2_impl;
     
     // MATRIX 3
-    mathx->mat.identity3 = _identity3_impl;
-    mathx->mat.transpose3 = _transpose3_impl;
+    libx->mathx.mat.identity3 = _identity3_impl;
+    libx->mathx.mat.transpose3 = _transpose3_impl;
     
-    mathx->mat.mult3 = _mul_mat3_impl;
+    libx->mathx.mat.mult3 = _mul_mat3_impl;
 
     // MATRIX 4
-    mathx->mat.identity4 = _identity4_impl;
-    mathx->mat.transpose4 = _transpose4_impl;
+    libx->mathx.mat.identity4 = _identity4_impl;
+    libx->mathx.mat.transpose4 = _transpose4_impl;
     
-    mathx->mat.rot4 = _rot4_impl;
-    mathx->mat.rotx4 = _rotx4_impl;
-    mathx->mat.roty4 = _roty4_impl;
-    mathx->mat.rotz4 = _rotz4_impl;
-    mathx->mat.trans4 = _trans4_impl;
-    mathx->mat.scale4 = _scale4_impl;
+    libx->mathx.mat.rot4 = _rot4_impl;
+    libx->mathx.mat.rotx4 = _rotx4_impl;
+    libx->mathx.mat.roty4 = _roty4_impl;
+    libx->mathx.mat.rotz4 = _rotz4_impl;
+    libx->mathx.mat.trans4 = _trans4_impl;
+    libx->mathx.mat.scale4 = _scale4_impl;
     
-    mathx->mat.mult4 = _mult4_impl;
-    mathx->mat.mult4v3 = _mult4v3_impl;
+    libx->mathx.mat.mult4 = _mult4_impl;
+    libx->mathx.mat.mult4v3 = _mult4v3_impl;
     
-    mathx->mat.lookat = _lookat_impl;
+    libx->mathx.mat.lookat = _lookat_impl;
     
-    mathx->mat.ortho = _ortho_impl;
-    mathx->mat.perspective = _perspective_impl;
+    libx->mathx.mat.ortho = _ortho_impl;
+    libx->mathx.mat.perspective = _perspective_impl;
 
     return LIBX_TRUE;
 }
 
-void libx_cleanup_math(void) {
-    if (mathx == NULL) return;    // error: math API not initialized!
-    memx->dealloc(mathx);
-    mathx = NULL;
+void libx_cleanup_mathx(void) {
+    if (!libx->mathx.init) return;    // error: Mathx API not initialized!
+	libx->mathx	= (Mathx){NULL};   
 }
 
