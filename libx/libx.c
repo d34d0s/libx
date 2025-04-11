@@ -67,12 +67,12 @@ u8 libx_deinit(Libx_Api mask) {
         return LIBX_TRUE;
     }
    
-    if (libx->meta.usage.apis & LIBX_ECSX)  { _libx_cleanup_ecsx(); }
-    if (libx->meta.usage.apis & LIBX_FILEX) { _libx_cleanup_filex(); }
-    if (libx->meta.usage.apis & LIBX_GENX)  { _libx_cleanup_genx(); }
-    if (libx->meta.usage.apis & LIBX_DSX)   { _libx_cleanup_dsx(); }
-    if (libx->meta.usage.apis & LIBX_MATHX) { _libx_cleanup_mathx(); }
-    if (libx->meta.usage.apis & LIBX_MEMX)  { _libx_cleanup_memx(); }
+    if (mask & LIBX_ECSX)  { _libx_cleanup_ecsx(); }
+    if (mask & LIBX_FILEX) { _libx_cleanup_filex(); }
+    if (mask & LIBX_GENX)  { _libx_cleanup_genx(); }
+    if (mask & LIBX_DSX)   { _libx_cleanup_dsx(); }
+    if (mask & LIBX_MATHX) { _libx_cleanup_mathx(); }
+    if (mask & LIBX_MEMX)  { _libx_cleanup_memx(); }
     
     return LIBX_TRUE;
 }

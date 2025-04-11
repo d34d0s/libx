@@ -170,6 +170,7 @@ u8 _libx_init_filex(void) {
 
 void _libx_cleanup_filex(void) {
     if (libx->filex.init == LIBX_FALSE) return;    // error: Filex API not initialized!
+	libx->meta.usage.apis &= ~LIBX_FILEX;
 	libx->filex.init = LIBX_FALSE;
 	libx->filex	= (Filex){0};
 }

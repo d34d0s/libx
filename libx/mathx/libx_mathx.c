@@ -517,6 +517,7 @@ u8 _libx_init_mathx(void) {
 
 void _libx_cleanup_mathx(void) {
     if (libx->mathx.init == LIBX_FALSE) return;    // error: Mathx API not initialized!
+	libx->meta.usage.apis &= ~LIBX_MATHX;
 	libx->mathx.init = LIBX_FALSE;
 	libx->mathx	= (Mathx){0};
 }

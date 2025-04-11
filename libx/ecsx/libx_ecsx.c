@@ -302,6 +302,7 @@ void _libx_cleanup_ecsx(void) {
     libx->dsx.array.destroy_array(libx->ecsx.component_manager.rem_component_fptr);
     libx->dsx.array.destroy_array(libx->ecsx.component_manager.get_component_fptr);
 
+	libx->meta.usage.apis &= ~LIBX_ECSX;
 	libx->ecsx.init = LIBX_FALSE;
 	libx->ecsx	= (Ecsx){0};
 }

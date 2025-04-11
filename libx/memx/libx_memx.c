@@ -269,6 +269,7 @@ u8 _libx_init_memx(void) {
 
 void _libx_cleanup_memx(void) {
     if (libx->memx.init == LIBX_FALSE) return;    // error: memx API not initialized!
+	libx->meta.usage.apis &= ~LIBX_MEMX;
 	libx->memx.init = LIBX_FALSE;
 	libx->memx	= (Memx){0};
 }

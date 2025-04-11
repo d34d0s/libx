@@ -366,6 +366,7 @@ u8 _libx_init_dsx(void) {
 
 void _libx_cleanup_dsx(void) {
     if (libx->dsx.init == LIBX_FALSE) return;    // error: Dsx API not initialized!
+	libx->meta.usage.apis &= ~LIBX_DSX;
     libx->dsx.init = LIBX_FALSE;
     libx->dsx = (Dsx){0};
 }

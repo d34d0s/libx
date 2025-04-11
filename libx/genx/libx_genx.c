@@ -251,6 +251,7 @@ u8 _libx_init_genx(void) {
 
 void _libx_cleanup_genx(void) {
     if (libx->genx.init == LIBX_FALSE) return;    // error: Genx API not initialized!
+	libx->meta.usage.apis &= ~LIBX_GENX;
 	libx->genx.init = LIBX_FALSE;
 	libx->genx	= (Genx){0};
 }
