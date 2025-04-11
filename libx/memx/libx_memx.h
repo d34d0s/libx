@@ -49,6 +49,7 @@ typedef struct Arena_Allocator {
 typedef struct Memx {
     u8 init;
     void (*dealloc)(void* ptr);
+    void (*zero)(void* ptr, u64 size);
     void* (*alloc)(u64 size, u64 align);
     void* (*realloc)(void* ptr, u64 size, u64 align);
 

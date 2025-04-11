@@ -10,6 +10,11 @@ void _dealloc_impl(void* ptr) {
 	free((void*)((u64)ptr - diff));
 }
 
+void _zero_impl(void* ptr, u64 size) {
+	if (!ptr || !size) return;	// error: null ptr/value error!
+	memset(ptr, 0, size);
+}
+
 void* _alloc_impl(u64 size, u64 align) {
 	if (!size || !LIBX_IP2(align)) return NULL;	// error: value error!
 
@@ -239,6 +244,7 @@ u8 _libx_init_memx(void) {
     if (libx->memx.init == LIBX_TRUE) return LIBX_TRUE;    // redundant call: memx API already initialized!
 
 	libx->memx.alloc = _alloc_impl;
+	libx->memx.zero = _zero_impl;
 	libx->memx.dealloc = _dealloc_impl;
 	libx->memx.realloc = _realloc_impl;
 	

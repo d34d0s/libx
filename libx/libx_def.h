@@ -57,6 +57,15 @@ typedef uintptr_t           uptr;
 #define LIBX_FORK(start, stop, step) for (u32 k = start; k < stop; k += step)
 #define LIBX_FOR(type, iter, start, stop, step) for (type iter = start; iter < stop; iter += step)
 
+#define LIBX_KB  1024
+#define LIBX_MB  (LIBX_KB * 1024)
+#define LIBX_GB  (LIBX_MB * 1024)
+
+#define LIBX_FLIP_BIT(v, b)  ((v) ^ (1<<(b)))
+#define LIBX_SET_BITS(v, b)  ((v) | (1<<(b)))
+#define LIBX_GET_BITS(v, b)  ((v) & (1<<(b)))
+#define LIBX_REM_BITS(v, b)  ((v) & ~(1<<(b)))
+
 #define LIBX_FNPTR(t, n, ...) t (*n)(__VA_ARGS__)
 
 #define LIBX_IMPLEMENT(n, ...)          \
