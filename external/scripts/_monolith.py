@@ -6,13 +6,13 @@ HEADER_GUARD = '__LIBX_H__'
 MODULES_DIR = 'libx'
 MODULE_ORDER = [
     'libx/libx_def',
-    'libx/libx',
     'libx/memx/libx_memx',
     'libx/dsx/libx_dsx',
     'libx/genx/libx_genx',
     'libx/ecsx/libx_ecsx',
     'libx/mathx/libx_mathx',
     'libx/filex/libx_filex',
+    'libx/libx'
 ]
 
 def strip_includes(text):
@@ -47,6 +47,7 @@ def gen_monolith(out_dir: str):
     output.append('')
 
     for module in MODULE_ORDER:
+        if module == "libx/libx_def": continue
         _, c = collect_source(module)
         output.append(f'// ==== {module}.c ====')
         output.append(c)
