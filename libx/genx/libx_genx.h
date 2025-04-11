@@ -1,7 +1,7 @@
-#ifndef LIBX_GENX_H
-#define LIBX_GENX_H
+#ifndef __LIBX_GENX_H__
+#define __LIBX_GENX_H__
 
-#include <libx/include/libx_def.h>
+#include <libx/libx_def.h>
 
 typedef enum Buffer_Field {
     BUFFER_NOFIELD      =   0x0000,
@@ -48,7 +48,7 @@ typedef struct Genx {
     } buffer;
 } Genx;
 
-LIBX_EXPOSE u8 libx_init_genx(void);
-LIBX_EXPOSE void libx_cleanup_genx(void);
+u8 _libx_init_genx(void);
+void _libx_cleanup_genx(void);
 
 #endif  // LIBX_GENX_H

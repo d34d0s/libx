@@ -1,7 +1,7 @@
-#ifndef LIBX_ECSX_H
-#define LIBX_ECSX_H
+#ifndef __LIBX_ECSX_H__
+#define __LIBX_ECSX_H__
 
-#include <libx/include/libx_def.h>
+#include <libx/libx_def.h>
 
 #define COMPONENT_MAX   (1 << 5)
 #define SYSTEM_MAX      (1 << 3)
@@ -21,7 +21,7 @@ typedef struct Ecsx {
     } entity_manager;
 
     struct component_manager {
-        Hash_Array** component_system;
+        void** component_system;
         void** component_storage;
         void** add_component_fptr;
         void** rem_component_fptr;
@@ -59,7 +59,7 @@ typedef struct Ecsx {
     u8 (*get_component)(u8 id, u32 entity, void* component);
 } Ecsx;
 
-LIBX_API u8 libx_init_ecsx(void);
-LIBX_API void libx_cleanup_ecsx(void);
+u8 _libx_init_ecsx(void);
+void _libx_cleanup_ecsx(void);
 
 #endif  // LIBX_ECSX_H

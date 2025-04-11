@@ -1,4 +1,4 @@
-#include <libx/include/libx.h>
+#include <libx/libx.h>
 
 /* ---------------- STANDARD ---------------- */
 void _dealloc_impl(void* ptr) {
@@ -234,9 +234,9 @@ u8 _blob_dealloc_impl(Blob* blob) {
 /* -------------------- GENERICS ------------------ */
 
 /* ---------------- API ---------------- */
-u8 libx_init_memx(void) {
+u8 _libx_init_memx(void) {
     if (!libx) return LIBX_FALSE; // error: null ptr!
-    if (libx->memx.init) return LIBX_TRUE;    // redundant call: memx API already initialized!
+    if (libx->memx.init == LIBX_TRUE) return LIBX_TRUE;    // redundant call: memx API already initialized!
 
 	libx->memx.alloc = _alloc_impl;
 	libx->memx.dealloc = _dealloc_impl;
@@ -257,11 +257,13 @@ u8 libx_init_memx(void) {
 	libx->memx.destroy_arena_allocator = _destroy_arena_allocator_impl;
 	libx->memx.collapse_arena_allocator = _collapse_arena_allocator_impl;
 
+	libx->memx.init = LIBX_TRUE;
 	return LIBX_TRUE;
 }
 
-void libx_cleanup_memx(void) {
-    if (!libx->memx.init) return;    // error: memx API not initialized!
-	libx->memx	= (Memx){NULL};
+void _libx_cleanup_memx(void) {
+    if (libx->memx.init == LIBX_FALSE) return;    // error: memx API not initialized!
+	libx->memx.init = LIBX_FALSE;
+	libx->memx	= (Memx){0};
 }
 /* ---------------- API ---------------- */

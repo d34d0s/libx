@@ -1,4 +1,6 @@
 *.bin
-*bin/
+build/
 .vscode/
+release/
 releases/
+__pycache__/

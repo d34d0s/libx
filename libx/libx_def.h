@@ -1,10 +1,13 @@
-#ifdef LIBX_STDLIB
+#ifndef __LIBX_DEF_H__
+#define __LIBX_DEF_H__
+
+#ifndef LIBX_NO_STDLIB
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <stddef.h>
 #endif
-
-#include <stdio.h>
 
 typedef char*               str;
 typedef const char*         cstr;

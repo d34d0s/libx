@@ -1,8 +1,8 @@
-#ifndef LIBX_MATHX_H
-#define LIBX_MATHX_H
+#ifndef __LIBX_MATHX_H__
+#define __LIBX_MATHX_H__
 
 #include <math.h>
-#include <libx/include/libx_def.h>
+#include <libx/libx_def.h>
 
 #define LIBX_PI 3.14159265358979323846
 
@@ -101,7 +101,7 @@ typedef struct Mathx {
     } mat;    
 } Mathx;
 
-LIBX_EXPOSE u8 libx_init_mathx(void);
-LIBX_EXPOSE void libx_cleanup_mathx(void);
+u8 _libx_init_mathx(void);
+void _libx_cleanup_mathx(void);
 
 #endif  // LIBX_MATHX_H

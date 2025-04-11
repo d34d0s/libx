@@ -1,4 +1,4 @@
-#include <libx/include/libx.h>
+#include <libx/libx.h>
 
 u8 _exists_impl(cstr path) {
     FILE* file = fopen(path, "rb");
@@ -143,11 +143,11 @@ u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
 }
 
 
-u8 libx_init_filex(void) {
+u8 _libx_init_filex(void) {
     if (!libx) return LIBX_FALSE; // error: null ptr!
-    if (libx->filex.init) return LIBX_TRUE;    // redundant call: Filex API already initialized!
+    if (libx->filex.init == LIBX_TRUE) return LIBX_TRUE;    // redundant call: Filex API already initialized!
 
-    if (!libx->memx.init) {
+    if (libx->memx.init == LIBX_FALSE) {
         printf("libx Memx api not initialized!\n");
         return LIBX_FALSE; // error: failed to initialize Memx api!
     }
@@ -164,10 +164,12 @@ u8 libx_init_filex(void) {
     libx->filex.appendb = _appendb_impl;
     libx->filex.process = _process_impl;
 
+	libx->filex.init = LIBX_TRUE;
     return LIBX_TRUE;
 }
 
-void libx_cleanup_filex(void) {
-    if (!libx->filex.init) return;    // error: Filex API not initialized!
-	libx->filex	= (Filex){NULL};   
+void _libx_cleanup_filex(void) {
+    if (libx->filex.init == LIBX_FALSE) return;    // error: Filex API not initialized!
+	libx->filex.init = LIBX_FALSE;
+	libx->filex	= (Filex){0};
 }

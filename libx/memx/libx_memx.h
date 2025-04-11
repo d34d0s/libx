@@ -1,7 +1,7 @@
-#ifndef LIBX_MEMX_H
-#define LIBX_MEMX_H
+#ifndef __LIBX_MEMX_H__
+#define __LIBX_MEMX_H__
 
-#include <libx/include/libx_def.h>
+#include <libx/libx_def.h>
 
 /* -------------------- GENERICS ------------------ */
 /**
@@ -52,6 +52,10 @@ typedef struct Memx {
     void* (*alloc)(u64 size, u64 align);
     void* (*realloc)(void* ptr, u64 size, u64 align);
 
+    u8 (*blob_alloc)(Blob* blob, u64 align);
+    u8 (*blob_realloc)(Blob* blob, u64 size, u64 align);
+    u8 (*blob_dealloc)(Blob* blob);
+
     Linear_Allocator* (*create_linear_allocator)(u64 max, u64 align);
     void* (*linear_alloc)(Linear_Allocator* allocator, u64 size, u64 align);
     void (*linear_reset)(Linear_Allocator* allocator);
@@ -64,7 +68,7 @@ typedef struct Memx {
     void (*collapse_arena_allocator)(Arena_Allocator* allocator);
 } Memx;
 
-LIBX_EXPOSE u8 libx_init_memx(void);
-LIBX_EXPOSE void libx_cleanup_memx(void);
+u8 _libx_init_memx(void);
+void _libx_cleanup_memx(void);
 
 #endif  // LIBX_MEMX_H

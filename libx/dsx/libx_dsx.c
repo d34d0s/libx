@@ -1,4 +1,4 @@
-#include <libx/include/libx.h>
+#include <libx/libx.h>
 
 /* ---------------- ARRAY ---------------- */
 #define LIBX_ARRAY_HEAD_SIZE (sizeof(u32) * 4)
@@ -330,12 +330,12 @@ void** _get_hash_array_values_impl(Hash_Array* array) {
 
 
 /* ---------------- API ---------------- */
-u8 libx_init_dsx(void) {
+u8 _libx_init_dsx(void) {
     if (!libx) return LIBX_FALSE; // error: null ptr!
-    if (libx->dsx.init) return LIBX_TRUE;    // redundant call: Dsx API already initialized!
+    if (libx->dsx.init == LIBX_TRUE) return LIBX_TRUE;    // redundant call: Dsx API already initialized!
 
-    if (!libx->memx.init) {
-        printf("libx Memx api not initialized!\n");
+    if (libx->memx.init == LIBX_FALSE) {
+        printf("Libx Memx api not initialized!\n");
         return LIBX_FALSE; // error: failed to initialize Memx API!
     }
 
@@ -360,11 +360,13 @@ u8 libx_init_dsx(void) {
     libx->dsx.array.pull_hash_array = _pull_hash_array_impl;
     libx->dsx.array.destroy_hash_array = _destroy_hash_array_impl;
     
+	libx->dsx.init = LIBX_TRUE;
     return 1;
 }
 
-void libx_cleanup_dsx(void) {
-    if (!libx->dsx.init) return;    // error: Dsx API not initialized!
-	libx->dsx	= (Dsx){NULL};
+void _libx_cleanup_dsx(void) {
+    if (libx->dsx.init == LIBX_FALSE) return;    // error: Dsx API not initialized!
+    libx->dsx.init = LIBX_FALSE;
+    libx->dsx = (Dsx){0};
 }
 /* ---------------- API ---------------- */

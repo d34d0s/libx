@@ -1,7 +1,7 @@
-#ifndef LIBX_FILEX_H
-#define LIBX_FILEX_H
+#ifndef __LIBX_FILEX_H__
+#define __LIBX_FILEX_H__
 
-#include <libx/include/libx_def.h>
+#include <libx/libx_def.h>
 
 typedef struct Filex {
     u8 init;
@@ -19,7 +19,7 @@ typedef struct Filex {
     u8 (*process)(cstr path, u64 lines, void (*callback)(cstr line));
 } Filex;
 
-LIBX_EXPOSE u8 libx_init_filex(void);
-LIBX_EXPOSE void libx_cleanup_filex(void);
+u8 _libx_init_filex(void);
+void _libx_cleanup_filex(void);
 
 #endif  // LIBX_FILEX_H

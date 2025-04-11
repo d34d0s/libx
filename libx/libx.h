@@ -1,5 +1,28 @@
-#ifndef LIBX_H
-#define LIBX_H
+/*
+----------------------------------------------------------
+Libx Runtime Library
+----------------------------------------------------------
+
+Modules:
+    - MEMX   : Memory utilities
+    - MATHX  : Math library
+    - DSX    : Data structures
+    - GENX   : General utilities
+    - FILEX  : File I/O
+    - ECSX   : ECS framework (Entity-Component-System)
+
+Usage:
+    libx_init(LIBX_MEMX | LIBX_DSX);
+    ...
+    libx_cleanup();
+
+libx is a singleton pointer to the active runtime.
+
+----------------------------------------------------------
+*/
+
+#ifndef __LIBX_H__
+#define __LIBX_H__
 
 #include <libx/memx/libx_memx.h>
 #include <libx/dsx/libx_dsx.h>
@@ -7,12 +30,6 @@
 #include <libx/ecsx/libx_ecsx.h>
 #include <libx/mathx/libx_mathx.h>
 #include <libx/filex/libx_filex.h>
-
-#define LIBX_INIT_IF(maskbit, fn) \
-    if ((mask & (maskbit)) && !fn()) return LIBX_FALSE;
-
-#define LIBX_CLEANUP_IF(maskbit, fn) \
-    if ((mask & (maskbit)) && !fn()) return LIBX_FALSE;
 
 typedef enum Libx_Api {
     LIBX_NOAPI  = 0,
@@ -28,7 +45,7 @@ typedef enum Libx_Api {
 typedef struct Libx_Metadata {
     struct version {
         u32 major, minor, patch;
-        cstr ver_str;
+        cstr string;
         cstr quote;         // a funny random quote (might look into a string lib as well as generating random quote strings :o Libx::strx ?!?!?) 
     } version;
 

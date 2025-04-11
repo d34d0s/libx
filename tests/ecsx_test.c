@@ -1,4 +1,4 @@
-#include "../libx/include/libx_ecs.h"
+#include <libx/libx.h>
 
 typedef struct my_component {
     str tag;
@@ -51,36 +51,34 @@ u8 post_component_system(u32 entity) {
     return LIBX_TRUE;
 }
 
-int main() {
-    libx_init_memory();
-    libx_init_dsx();
-    libx_init_ecs();
+void main() {
+    libx_init(LIBX_ALL);
 
     // register a component
-    if (ecsx->register_component(0, &storage, add_component, rem_component, get_component)) {
+    if (libx->ecsx.register_component(0, &storage, add_component, rem_component, get_component)) {
         printf("Component Registered!\n");
     }
-    if (ecsx->register_component(1, &storage, add_component, rem_component, get_component)) {
+    if (libx->ecsx.register_component(1, &storage, add_component, rem_component, get_component)) {
         printf("Component Registered!\n");
     }
 
     if (
-        ecsx->register_system(0, "main", main_component_system) &&
-        ecsx->register_system(0, "pre", pre_component_system) &&
-        ecsx->register_system(0, "post", post_component_system)
+        libx->ecsx.register_system(0, "main", main_component_system) &&
+        libx->ecsx.register_system(0, "pre", pre_component_system) &&
+        libx->ecsx.register_system(0, "post", post_component_system)
     ) {
         printf("Component System Registered!\n");
     }
 
     // create an entity with our components
-    u32 entity = ecsx->create_entity_with(2, (u8[]){0, 1});
+    u32 entity = libx->ecsx.create_entity_with(2, (u8[]){0, 1});
     
     // since the component storage exists on the caller side...
     // the caller can manipulate entity-component data
     storage.ivalue[entity] = 123321;
 
     my_component component;
-    if (ecsx->get_component(0, entity, &component)) {
+    if (libx->ecsx.get_component(0, entity, &component)) {
         printf("Retrieved Component!\n");
         printf("Tag: %s\n", component.tag);
         printf("Ivalue: %d\n", component.ivalue);
@@ -88,34 +86,31 @@ int main() {
     }
     
     // create an entity without our component
-    u32 e = ecsx->create_entity();
+    u32 e = libx->ecsx.create_entity();
 
     // create 8 more entities with our component
     LIBX_FORI(0, 8, 1) {
-        u32 e = ecsx->create_entity();
-        ecsx->add_component(0, e);
+        u32 e = libx->ecsx.create_entity();
+        libx->ecsx.add_component(0, e);
     }
 
     // we should have 10 entities
-    if (ecsx->entity_manager.count == 10) printf("10 Entities Created!\n");
+    if (libx->ecsx.entity_manager.count == 10) printf("10 Entities Created!\n");
     
     // retrieve an array containing all entities with our component
-    u32* buffer = ecsx->get_entities(0);
-    LIBX_FORI(0, ecsx->entity_manager.count, 1) {
+    u32* buffer = libx->ecsx.get_entities(0);
+    LIBX_FORI(0, libx->ecsx.entity_manager.count, 1) {
         u32 e = buffer[i];
         if (e == ENTITY_MAX) continue;    // skip sentinnel values
         printf("Entity Has My Component: %d\n", e);
     }
-    structx->array.destroy_array(buffer);
+    libx->dsx.array.destroy_array(buffer);
 
-    if (ecsx->run_system(0, "main")) printf("Component System Ran!\n");
-    if (ecsx->run_systems(0)) printf("All Component Systems Ran!\n");
+    if (libx->ecsx.run_system(0, "main")) printf("Component System Ran!\n");
+    if (libx->ecsx.run_systems(0)) printf("All Component Systems Ran!\n");
         
-    if (ecsx->unregister_systems(0)) printf("All Component Systems Unregistered!\n");
-    if (ecsx->unregister_component(0)) printf("Component Unregistered!\n");
+    if (libx->ecsx.unregister_systems(0)) printf("All Component Systems Unregistered!\n");
+    if (libx->ecsx.unregister_component(0)) printf("Component Unregistered!\n");
 
-    libx_cleanup_ecs();
-    libx_cleanup_dsx();
-    libx_cleanup_memory();
-    return 0;
+    if (libx_cleanup()) printf("Ecsx Test Ran!\n");
 }

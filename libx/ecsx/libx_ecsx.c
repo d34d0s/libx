@@ -1,4 +1,4 @@
-#include <libx/include/libx.h>
+#include <libx/libx.h>
 
 u32 _create_entity_impl(void) {
     u32 entity;
@@ -47,8 +47,8 @@ u8 _register_component_impl(
         !add_func || !rem_func || !get_func
     ) return LIBX_FALSE; // error: value error!
     
-    libx->ecsx.component_manager.component_system[id] = libx->dsx.array.create_hash_array(SYSTEM_MAX);
-    if (!libx->ecsx.component_manager.component_system[id]) return LIBX_FALSE;   // error: out of memory!
+    ((Hash_Array**)libx->ecsx.component_manager.component_system)[id] = libx->dsx.array.create_hash_array(SYSTEM_MAX);
+    if (!((Hash_Array**)libx->ecsx.component_manager.component_system)[id]) return LIBX_FALSE;   // error: out of memory!
 
     libx->ecsx.component_manager.component_storage[id] = storage;
     libx->ecsx.component_manager.add_component_fptr[id] = add_func;
@@ -65,7 +65,7 @@ u8 _unregister_component_impl(u8 id) {
 
     // TODO: remove this component from all entities with it
     libx->ecsx.component_manager.component_storage[id] = NULL;
-    libx->dsx.array.destroy_hash_array(libx->ecsx.component_manager.component_system[id]);
+    libx->dsx.array.destroy_hash_array(((Hash_Array**)libx->ecsx.component_manager.component_system)[id]);
     libx->ecsx.component_manager.add_component_fptr[id] = NULL;
     libx->ecsx.component_manager.rem_component_fptr[id] = NULL;
     libx->ecsx.component_manager.get_component_fptr[id] = NULL;
@@ -77,10 +77,10 @@ u8 _unregister_component_impl(u8 id) {
 u8 _register_system_impl(u8 id, cstr name, void* system) {
     if (id < 0 || id > COMPONENT_MAX || !system) return LIBX_FALSE; // error: null ptr/value error!
     
-    Array_Head head = libx->dsx.array.get_array_head(libx->ecsx.component_manager.component_system[id]);
+    Array_Head head = libx->dsx.array.get_array_head(((Hash_Array**)libx->ecsx.component_manager.component_system)[id]);
     if (head.count == SYSTEM_MAX) return LIBX_FALSE;    // error: maximum systems reached for this component!
 
-    libx->dsx.array.put_hash_array(libx->ecsx.component_manager.component_system[id], name, system);
+    libx->dsx.array.put_hash_array(((Hash_Array**)libx->ecsx.component_manager.component_system)[id], name, system);
 
     return LIBX_TRUE;
 }
@@ -88,18 +88,18 @@ u8 _register_system_impl(u8 id, cstr name, void* system) {
 u8 _unregister_system_impl(u8 id, cstr name) {
     if (id < 0 || id > COMPONENT_MAX || !name) return LIBX_FALSE; // error: null ptr/value error!
     Key_Value temp = {NULL};
-    return libx->dsx.array.pull_hash_array(libx->ecsx.component_manager.component_system[id], name, &temp);
+    return libx->dsx.array.pull_hash_array(((Hash_Array**)libx->ecsx.component_manager.component_system)[id], name, &temp);
 }
 
 u8 _unregister_systems_impl(u8 id) {
     if (id < 0 || id > COMPONENT_MAX) return LIBX_FALSE; // error: null ptr/value error!
     Key_Value temp = {NULL};
     
-    cstr* keys = libx->dsx.array.get_hash_array_keys(libx->ecsx.component_manager.component_system[id]);
+    cstr* keys = libx->dsx.array.get_hash_array_keys(((Hash_Array**)libx->ecsx.component_manager.component_system)[id]);
     if (!keys) return LIBX_FALSE;   // error: failed to get hash array keys!
 
-    LIBX_FORI(0, libx->ecsx.component_manager.component_system[id]->meta.count, 1) {
-        if (!libx->dsx.array.pull_hash_array(libx->ecsx.component_manager.component_system[id], keys[i], &temp)) return LIBX_FALSE;   // error: failed to unregister a system!
+    LIBX_FORI(0, ((Hash_Array**)libx->ecsx.component_manager.component_system)[id]->meta.count, 1) {
+        if (!libx->dsx.array.pull_hash_array(((Hash_Array**)libx->ecsx.component_manager.component_system)[id], keys[i], &temp)) return LIBX_FALSE;   // error: failed to unregister a system!
     }
     
     if (keys != NULL) libx->dsx.array.destroy_array(keys);
@@ -110,7 +110,7 @@ u8 _unregister_systems_impl(u8 id) {
 u8 _run_system_impl(u8 id, cstr name) {
     if (id < 0 || id > COMPONENT_MAX || !name) return LIBX_FALSE; // error: null ptr/value error!
     
-    COMPONENT_SYSTEM_FPTR system = libx->dsx.array.get_hash_array(libx->ecsx.component_manager.component_system[id], name);
+    COMPONENT_SYSTEM_FPTR system = libx->dsx.array.get_hash_array(((Hash_Array**)libx->ecsx.component_manager.component_system)[id], name);
     if (!system) return LIBX_FALSE; // error: failed to get system from hash array!
 
     LIBX_FORI(0, libx->ecsx.entity_manager.count, 1) {
@@ -128,11 +128,11 @@ u8 _run_systems_impl(u8 id) {
     LIBX_FORI(0, libx->ecsx.entity_manager.count, 1) {
         if ((libx->ecsx.entity_manager.mask[i] & (1<<id)) != (1<<id)) continue;  // skip entities with invalid masks
         
-        keys = libx->dsx.array.get_hash_array_keys(libx->ecsx.component_manager.component_system[id]);
+        keys = libx->dsx.array.get_hash_array_keys(((Hash_Array**)libx->ecsx.component_manager.component_system)[id]);
         if (!keys) return LIBX_FALSE;   // error: failed to get hash array keys!
 
-        LIBX_FORJ(0, libx->ecsx.component_manager.component_system[id]->meta.count, 1) {
-            COMPONENT_SYSTEM_FPTR system = libx->dsx.array.get_hash_array(libx->ecsx.component_manager.component_system[id], keys[j]);
+        LIBX_FORJ(0, ((Hash_Array**)libx->ecsx.component_manager.component_system)[id]->meta.count, 1) {
+            COMPONENT_SYSTEM_FPTR system = libx->dsx.array.get_hash_array(((Hash_Array**)libx->ecsx.component_manager.component_system)[id], keys[j]);
             if (!system) return LIBX_FALSE; // error: failed to get system from hash array!
             if (!system(i)) return LIBX_FALSE;  // error: system failed to run!
         }
@@ -183,30 +183,28 @@ u32* _get_entities_impl(u8 id) {
 }
 
 
-u8 libx_init_ecsx(void) {
+u8 _libx_init_ecsx(void) {
     if (!libx) return LIBX_FALSE; // error: null ptr!
-    if (libx->ecsx.init) return LIBX_TRUE;    // redundant call: Ecsx API already initialized!
+    if (libx->ecsx.init == LIBX_TRUE) return LIBX_TRUE;    // redundant call: Ecsx API already initialized!
 
-    if (!libx->memx.init) {
-        printf("libx Memx API not initialized!\n");
+    if (libx->memx.init == LIBX_FALSE) {
+        printf("Libx Memx API not initialized!\n");
         return LIBX_FALSE; // error: failed to initialize Memx API!
     }
     
-    if (!libx->dsx.init) {
-        printf("libx Dsx API not initialized!\n");
+    if (libx->dsx.init == LIBX_FALSE) {
+        printf("Libx Dsx API not initialized!\n");
         return LIBX_FALSE; // error: failed to initialize Dsx API!
     }
 
     libx->ecsx.entity_manager.queue = libx->dsx.array.create_array(sizeof(u32), ENTITY_MAX);
     if (!libx->ecsx.entity_manager.queue) {
-        libx->memx.dealloc(ecsx);
         return LIBX_FALSE;  // error: out of memory!
     }
     
     libx->ecsx.entity_manager.mask = libx->dsx.array.create_array(sizeof(u32), ENTITY_MAX);
     if (!libx->ecsx.entity_manager.mask) {
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.queue);
-        libx->memx.dealloc(ecsx);
         return LIBX_FALSE;  // error: out of memory!
     }
     
@@ -219,7 +217,6 @@ u8 libx_init_ecsx(void) {
     if (!libx->ecsx.component_manager.component_storage) {
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.queue);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.mask);
-        libx->memx.dealloc(ecsx);
         return LIBX_FALSE;  // error: out of memory!
     }
     
@@ -228,7 +225,6 @@ u8 libx_init_ecsx(void) {
         libx->dsx.array.destroy_array(libx->ecsx.component_manager.component_storage);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.queue);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.mask);
-        libx->memx.dealloc(ecsx);
         return LIBX_FALSE;  // error: out of memory!
     }
 
@@ -238,7 +234,6 @@ u8 libx_init_ecsx(void) {
         libx->dsx.array.destroy_array(libx->ecsx.component_manager.component_system);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.queue);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.mask);
-        libx->memx.dealloc(ecsx);
         return LIBX_FALSE;  // error: out of memory!
     }
     
@@ -249,7 +244,6 @@ u8 libx_init_ecsx(void) {
         libx->dsx.array.destroy_array(libx->ecsx.component_manager.add_component_fptr);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.queue);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.mask);
-        libx->memx.dealloc(ecsx);
         return LIBX_FALSE;  // error: out of memory!
     }
     
@@ -261,7 +255,6 @@ u8 libx_init_ecsx(void) {
         libx->dsx.array.destroy_array(libx->ecsx.component_manager.rem_component_fptr);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.queue);
         libx->dsx.array.destroy_array(libx->ecsx.entity_manager.mask);
-        libx->memx.dealloc(ecsx);
         return LIBX_FALSE;  // error: out of memory!
     }
     
@@ -286,19 +279,20 @@ u8 libx_init_ecsx(void) {
     libx->ecsx.has_component = _has_component_impl;
     libx->ecsx.get_entities = _get_entities_impl;
     
+	libx->ecsx.init = LIBX_TRUE;
     return LIBX_TRUE;
 }
 
-void libx_cleanup_ecsx(void) {
-    if (!libx->ecsx.init) return;    // error: ecsx API not initialized!
+void _libx_cleanup_ecsx(void) {
+    if (libx->ecsx.init == LIBX_FALSE) return;    // error: ecsx API not initialized!
 
     libx->dsx.array.destroy_array(libx->ecsx.entity_manager.mask);
     libx->dsx.array.destroy_array(libx->ecsx.entity_manager.queue);
 
     Array_Head head = libx->dsx.array.get_array_head(libx->ecsx.component_manager.component_system);
     LIBX_FORI(0, head.count, 1) {
-        if (libx->ecsx.component_manager.component_system[i]) {
-            libx->dsx.array.destroy_hash_array(libx->ecsx.component_manager.component_system[i]);
+        if (((Hash_Array**)libx->ecsx.component_manager.component_system)[i]) {
+            libx->dsx.array.destroy_hash_array(((Hash_Array**)libx->ecsx.component_manager.component_system)[i]);
         }
     }
 
@@ -308,5 +302,6 @@ void libx_cleanup_ecsx(void) {
     libx->dsx.array.destroy_array(libx->ecsx.component_manager.rem_component_fptr);
     libx->dsx.array.destroy_array(libx->ecsx.component_manager.get_component_fptr);
 
-	libx->ecsx	= (Ecsx){NULL};
+	libx->ecsx.init = LIBX_FALSE;
+	libx->ecsx	= (Ecsx){0};
 }

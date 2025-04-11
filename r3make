@@ -1,0 +1,49 @@
+{
+    "c-instance": "GCC",
+    "c-targets": {
+        "libx": {
+            "r3make": {
+                "post-build": {
+                    "nofiles": null
+                }
+            },
+            "c-flags": [
+                "-std=c99"
+            ],
+            "c-defines": [
+                "DLL_EXPORT"
+            ],
+            "src-dirs": [
+                "libx"
+            ],
+            "inc-dirs": [
+                "."
+            ],
+            "out-type": "dll",
+            "out-name": "libx",
+            "out-dir": "build"
+        },
+        "tests": {
+            "r3make": {
+                "flags": [
+                    "buildeach"
+                ],
+                "post-build": {
+                    "nofiles": null
+                }
+            },
+            "src-dirs": [
+                "tests"
+            ],
+            "inc-dirs": [
+                "."
+            ],
+            "lib-links": {
+                "libx": null
+            },
+            "out-type": "exe",
+            "out-name": null,
+            "out-dir": "build"
+        }
+    }
+}

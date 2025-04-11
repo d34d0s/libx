@@ -1,4 +1,4 @@
-#include <libx/include/libx.h>
+#include <libx/libx.h>
 
 /* ---------------- UTILITY ------------- */
 void _print_vec2_impl(cstr name, Vec2 vec) {
@@ -439,9 +439,9 @@ Mat4 _perspective_impl(f32 fovy, f32 aspect, f32 near, f32 far) {
 }
 /* ---------------- MAT4 ---------------- */
 
-u8 libx_init_mathx(void) {
+u8 _libx_init_mathx(void) {
     if (!libx) return LIBX_FALSE; // error: null ptr!
-    if (libx->mathx.init) return LIBX_TRUE;    // redundant call: Mathx API already initialized!
+    if (libx->mathx.init == LIBX_TRUE) return LIBX_TRUE;    // redundant call: Mathx API already initialized!
 
     // SCALAR API INIT
     libx->mathx.scalar.radians = _to_radians_impl;
@@ -511,11 +511,12 @@ u8 libx_init_mathx(void) {
     libx->mathx.mat.ortho = _ortho_impl;
     libx->mathx.mat.perspective = _perspective_impl;
 
+	libx->mathx.init = LIBX_TRUE;
     return LIBX_TRUE;
 }
 
-void libx_cleanup_mathx(void) {
-    if (!libx->mathx.init) return;    // error: Mathx API not initialized!
-	libx->mathx	= (Mathx){NULL};   
+void _libx_cleanup_mathx(void) {
+    if (libx->mathx.init == LIBX_FALSE) return;    // error: Mathx API not initialized!
+	libx->mathx.init = LIBX_FALSE;
+	libx->mathx	= (Mathx){0};
 }
-
