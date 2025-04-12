@@ -49,11 +49,14 @@ typedef struct Libx_Metadata {
         cstr quote;         // a funny random quote (might look into a string lib as well as generating random quote strings :o Libx::strx ?!?!?) 
     } version;
 
-    union usage {
+    struct usage {
         u8 apis;            // bitmask passed to libx_init
-        u64 b, B;           // bits,      bytes
-        u64 KB, MB, GB;     // kilobytes, megabytes, gigabytes
-        u64 KiB, MiB, GiB;  // kibibytes, mebibytes, gibibytes
+        u64 memx;
+        u64 dsx;
+        u64 genx;
+        u64 ecsx;
+        u64 mathx;
+        u64 filex;
     } usage;
 } Libx_Metadata;
 
@@ -65,6 +68,8 @@ typedef struct Libx {
     Mathx mathx;
     Filex filex;
     Libx_Metadata meta;
+
+    void (*dump)(void);
 } Libx;
 extern Libx* libx;
 

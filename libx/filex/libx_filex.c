@@ -164,6 +164,7 @@ u8 _libx_init_filex(void) {
     libx->filex.appendb = _appendb_impl;
     libx->filex.process = _process_impl;
 
+    libx->meta.usage.filex = sizeof(Filex);
 	libx->filex.init = LIBX_TRUE;
     return LIBX_TRUE;
 }
@@ -172,5 +173,6 @@ void _libx_cleanup_filex(void) {
     if (libx->filex.init == LIBX_FALSE) return;    // error: Filex API not initialized!
 	libx->meta.usage.apis &= ~LIBX_FILEX;
 	libx->filex.init = LIBX_FALSE;
+    libx->meta.usage.filex = 0;
 	libx->filex	= (Filex){0};
 }

@@ -245,6 +245,7 @@ u8 _libx_init_genx(void) {
     libx->genx.bin.pack8 = _pack8_impl;
     libx->genx.bin.unpack8 = _unpack8_impl;
 
+    libx->meta.usage.genx = sizeof(Genx);
 	libx->genx.init = LIBX_TRUE;
     return LIBX_TRUE;
 }
@@ -253,5 +254,6 @@ void _libx_cleanup_genx(void) {
     if (libx->genx.init == LIBX_FALSE) return;    // error: Genx API not initialized!
 	libx->meta.usage.apis &= ~LIBX_GENX;
 	libx->genx.init = LIBX_FALSE;
+    libx->meta.usage.genx = 0;
 	libx->genx	= (Genx){0};
 }

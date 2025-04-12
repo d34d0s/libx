@@ -3,6 +3,19 @@
 
 Libx* libx = NULL;
 
+void _dump_impl(void) {
+    u64 total = libx->meta.usage.memx + libx->meta.usage.dsx + libx->meta.usage.genx + libx->meta.usage.ecsx + libx->meta.usage.mathx + libx->meta.usage.filex;
+    printf("---Libx %s---\n", libx->meta.version.string);
+    printf("\"%s\"\n", libx->meta.version.quote);
+    printf("|Memx  %d: %lluB\n", libx->memx.init, libx->meta.usage.memx);
+    printf("|Dsx   %d: %lluB\n", libx->dsx.init, libx->meta.usage.dsx);
+    printf("|Genx  %d: %lluB\n", libx->genx.init, libx->meta.usage.genx);
+    printf("|Ecsx  %d: %lluB\n", libx->ecsx.init, libx->meta.usage.ecsx);
+    printf("|Mathx %d: %lluB\n", libx->mathx.init, libx->meta.usage.mathx);
+    printf("|Filex %d: %lluB", libx->filex.init, libx->meta.usage.filex);
+    printf("\n-----Total %lluB-----\n", total);
+}
+
 u8 libx_init(Libx_Api mask) {
     if (!mask) return LIBX_FALSE;
 
@@ -14,15 +27,24 @@ u8 libx_init(Libx_Api mask) {
         libx->meta.version.minor = LIBX_VERSION_MINOR;
         libx->meta.version.patch = LIBX_VERSION_PATCH;
         libx->meta.version.string = LIBX_VERSION_STRING;
-        libx->meta.version.quote = "Look mom, another runtime lib!";
+        libx->meta.version.quote = "Who really reads these?";
         
         libx->meta.usage.apis = 0;
+        libx->meta.usage.memx = 0;
+        libx->meta.usage.mathx = 0;
+        libx->meta.usage.dsx = 0;
+        libx->meta.usage.genx = 0;
+        libx->meta.usage.filex = 0;
+        libx->meta.usage.ecsx = 0;
+        
         libx->memx.init = LIBX_FALSE;
         libx->mathx.init = LIBX_FALSE;
         libx->dsx.init = LIBX_FALSE;
         libx->genx.init = LIBX_FALSE;
         libx->filex.init = LIBX_FALSE;
         libx->ecsx.init = LIBX_FALSE;
+
+        libx->dump = _dump_impl;
     }
 
     // check if any new modules were requested

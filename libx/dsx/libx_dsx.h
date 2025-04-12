@@ -10,11 +10,11 @@ typedef struct Array_Head {
 } Array_Head;
 
 typedef enum Array_Head_Field {
-    LIBX_ARRAY_SIZE_FIELD = 0,
-    LIBX_ARRAY_STRIDE_FIELD,
-    LIBX_ARRAY_COUNT_FIELD,
-    LIBX_ARRAY_MAX_FIELD,
-    LIBX_ARRAY_FIELDS,
+    ARRAY_SIZE_FIELD = 0,
+    ARRAY_STRIDE_FIELD,
+    ARRAY_COUNT_FIELD,
+    ARRAY_MAX_FIELD,
+    ARRAY_FIELDS,
 } Array_Head_Field;
 /* ---------------- ARRAY ---------------- */
 

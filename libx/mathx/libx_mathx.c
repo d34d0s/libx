@@ -510,7 +510,8 @@ u8 _libx_init_mathx(void) {
     
     libx->mathx.mat.ortho = _ortho_impl;
     libx->mathx.mat.perspective = _perspective_impl;
-
+    
+    libx->meta.usage.mathx = sizeof(Mathx);
 	libx->mathx.init = LIBX_TRUE;
     return LIBX_TRUE;
 }
@@ -519,5 +520,6 @@ void _libx_cleanup_mathx(void) {
     if (libx->mathx.init == LIBX_FALSE) return;    // error: Mathx API not initialized!
 	libx->meta.usage.apis &= ~LIBX_MATHX;
 	libx->mathx.init = LIBX_FALSE;
+    libx->meta.usage.mathx = 0;
 	libx->mathx	= (Mathx){0};
 }

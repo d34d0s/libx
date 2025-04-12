@@ -58,147 +58,61 @@ void* _realloc_impl(void* ptr, u64 size, u64 align) {
 /* ---------------- STANDARD ---------------- */
 
 
-/* ---------------- LINEAR ALLOCATOR ---------------- */
-Linear_Allocator* _create_linear_allocator_impl(u64 max, u64 align) {
-	if (!max || !LIBX_IP2(align)) return NULL;	// error: value error!
-	
-	Linear_Allocator* allocator = (Linear_Allocator*)libx->memx.alloc(sizeof(Linear_Allocator), align);
-	if (!allocator) return NULL;	// error: out of memory!
-
-	allocator->data = libx->memx.alloc(max, align);
-	if (!allocator->data) return NULL;
-
-	allocator->offset = 0;
-	allocator->max = max;
-	return allocator;
-}
-
-void _linear_reset_impl(Linear_Allocator* allocator) {
-	if (!allocator) return;	// error: null ptr!
-	allocator->offset = 0;
-}
-
-void* _linear_alloc_impl(Linear_Allocator* allocator, u64 size, u64 align) {
-	if (!allocator || !allocator->data) return NULL;	// error: null ptr!
-
-	u64 aoffset = LIBX_ALIGN(allocator->offset, align);
-	if (aoffset + size > allocator->max) return NULL;	// error: out of memory!
-
-	allocator->offset = aoffset + size;
-	return (u8*)allocator->data + aoffset;
-}
-
-void _destroy_linear_allocator_impl(Linear_Allocator* allocator) {
-	if (!allocator || !allocator->data) return;	// error: null ptr!
-	libx->memx.dealloc(allocator->data);
-	allocator->data = NULL;
-	allocator->offset = 0;
-	allocator->max = 0;
-}
-/* ---------------- LINEAR ALLOCATOR ---------------- */
-
-
 /* ---------------- ARENA ALLOCATOR ---------------- */
-Arena_Allocator* _create_arena_allocator_impl(Arena_Allocator* allocator, u64 max, u64 align) {
-    if (!max || !LIBX_IP2(align)) return NULL; // error: invalid size
-
-    Arena_Allocator* new_arena = (Arena_Allocator*)libx->memx.alloc(sizeof(Arena_Allocator), align);
-    if (!new_arena) return NULL; // error: out of memx
-
-    new_arena->data = libx->memx.alloc(max, align);
-    if (!new_arena->data) {
-        libx->memx.dealloc(new_arena);
-        return NULL;	// error: out of memory!
-    }
-
-    new_arena->offset = 0;
-    new_arena->max = max;
-    new_arena->next = NULL;
-    new_arena->last = NULL;
-
-    if (allocator) {
-        new_arena->last = allocator;
-        if (allocator->next) {
-            new_arena->next = allocator->next;
-            allocator->next->last = new_arena;
-        }
-        allocator->next = new_arena;
-    }
-
-    return new_arena;
-}
-
-void _arena_reset_impl(Arena_Allocator* allocator) {
+void _arena_reset_impl(Allocator* allocator) {
 	if (!allocator) return;	// error: null ptr!
-	allocator->offset = 0;
+	allocator->context.arena.offset = 0;
 }
 
-void* _arena_alloc_impl(Arena_Allocator* allocator, u64 size, u64 align) {
-    if (!allocator) return NULL; // error: invalid allocator
+void* _arena_alloc_impl(u64 size, u64 align, Allocator* allocator) {
+	if (!allocator || !allocator->context.arena.buffer) return NULL;	// error: null ptr!
 
-	// search for a node with enough space
-    Arena_Allocator* node = allocator;
-    while (node) {
-        u64 aoffset = LIBX_ALIGN(node->offset, align);
-        if (aoffset + size <= node->max) {
-            void* ptr = (u8*)node->data + aoffset;
-            node->offset = aoffset + size;
-            return ptr;
-        }
-        node = node->next;
-    }
+	u64 aoffset = LIBX_ALIGN(allocator->context.arena.offset, align);
+	if (aoffset + size > allocator->context.arena.max) return NULL;	// error: out of memory!
 
-    // no space, allocate a new node and store it in the linked list
-    Arena_Allocator* new_node = libx->memx.create_arena_allocator(allocator, allocator->max + size, align);
-    if (!new_node) return NULL;
-
-    new_node->offset = size;
-    return new_node->data;
-}
-
-void _destroy_arena_allocator_impl(Arena_Allocator* allocator) {
-    if (!allocator) return;
-	
-    if (allocator->next) allocator->next->last = allocator->last;
-    if (allocator->last) allocator->last->next = allocator->next;
-	
-    libx->memx.dealloc(allocator->data);
-    libx->memx.dealloc(allocator);
-
-	allocator->data = NULL;
-	allocator->last = NULL;
-	allocator->next = NULL;
-}
-
-void _collapse_arena_allocator_impl(Arena_Allocator* allocator) {
-    if (!allocator) return;
-
-    Arena_Allocator* next = allocator->next;
-    while (next) {
-        Arena_Allocator* temp = next->next;
-        libx->memx.destroy_arena_allocator(next);
-        next = temp;
-    }
-
-	Arena_Allocator* last = allocator->last;
-    while (last) {
-        Arena_Allocator* temp = last->last;
-        libx->memx.destroy_arena_allocator(last);
-        last = temp;
-    }
-    
-	libx->memx.destroy_arena_allocator(allocator);
+	allocator->context.arena.commit += size;
+	allocator->context.arena.offset = aoffset + size;
+	return (u8*)allocator->context.arena.buffer + aoffset;
 }
 /* ---------------- ARENA ALLOCATOR ---------------- */
 
+/* ---------------- ALLOCATOR ---------------- */
+u8 _create_allocator_impl(Alloc_Type type, u64 max, u64 align, Allocator* allocator) {
+	if (type >= ALLOC_TYPES || !max || !LIBX_IP2(align) || !allocator) return LIBX_FALSE;	// error value error!
+	switch (type) {
+		case ALLOC_DEFAULT:
+		case ALLOC_ARENA: {
+			allocator->type = type;
+	
+			allocator->context.arena.buffer = libx->memx.alloc(max, align);
+			if (!allocator->context.arena.buffer) return LIBX_FALSE;
+		
+			allocator->context.arena.offset = 0;
+			allocator->context.arena.max = max;
+			return LIBX_TRUE;
+		}
+		default: break;
+	}
+}
 
-/* ---------------- STACK ALLOCATOR ---------------- */
-/* ---------------- STACK ALLOCATOR ---------------- */
-
-
-/* ---------------- RING ALLOCATOR ---------------- */
-/* ---------------- RING ALLOCATOR ---------------- */
-
+u8 _destroy_allocator_impl(Allocator* allocator) {
+	if (!allocator || allocator->type >= ALLOC_TYPES) return LIBX_FALSE;	// error: value error!
+	switch (allocator->type)
+	{
+	case ALLOC_DEFAULT:
+	case ALLOC_ARENA: {
+		if (!allocator->context.arena.buffer) return LIBX_FALSE;	// error: null ptr!
+		libx->memx.dealloc(allocator->context.arena.buffer);
+		allocator->context.arena.buffer = NULL;
+		allocator->context.arena.offset = 0;
+		allocator->context.arena.max = 0;
+		return LIBX_TRUE;
+	}
+	default: break;
+	}
+	return LIBX_TRUE;
+}
+/* ---------------- ALLOCATOR ---------------- */
 
 /* -------------------- GENERICS ------------------ */
 u8 _blob_alloc_impl(Blob* blob, u64 align) {
@@ -235,7 +149,6 @@ u8 _blob_dealloc_impl(Blob* blob) {
 	blob->size = 0;
 	return LIBX_TRUE;
 }
-
 /* -------------------- GENERICS ------------------ */
 
 /* ---------------- API ---------------- */
@@ -252,17 +165,12 @@ u8 _libx_init_memx(void) {
 	libx->memx.blob_dealloc = _blob_dealloc_impl;
 	libx->memx.blob_realloc = _blob_realloc_impl;
 	
-	libx->memx.create_linear_allocator = _create_linear_allocator_impl;
-	libx->memx.linear_alloc = _linear_alloc_impl;
-	libx->memx.linear_reset = _linear_reset_impl;
-	libx->memx.destroy_linear_allocator = _destroy_linear_allocator_impl;
-	
-	libx->memx.create_arena_allocator = _create_arena_allocator_impl;
+	libx->memx.create_allocator = _create_allocator_impl;
 	libx->memx.arena_alloc = _arena_alloc_impl;
 	libx->memx.arena_reset = _arena_reset_impl;
-	libx->memx.destroy_arena_allocator = _destroy_arena_allocator_impl;
-	libx->memx.collapse_arena_allocator = _collapse_arena_allocator_impl;
-
+	libx->memx.destroy_allocator = _destroy_allocator_impl;
+	
+	libx->meta.usage.memx = sizeof(Memx);
 	libx->memx.init = LIBX_TRUE;
 	return LIBX_TRUE;
 }
@@ -271,6 +179,7 @@ void _libx_cleanup_memx(void) {
     if (libx->memx.init == LIBX_FALSE) return;    // error: memx API not initialized!
 	libx->meta.usage.apis &= ~LIBX_MEMX;
 	libx->memx.init = LIBX_FALSE;
+	libx->meta.usage.memx = 0;
 	libx->memx	= (Memx){0};
 }
 /* ---------------- API ---------------- */

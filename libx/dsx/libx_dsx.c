@@ -1,42 +1,42 @@
 #include <libx/libx.h>
 
 /* ---------------- ARRAY ---------------- */
-#define LIBX_ARRAY_HEAD_SIZE (sizeof(u32) * 4)
+#define ARRAY_HEAD_SIZE (sizeof(u32) * 4)
 
 void* _create_array_impl(u32 stride, u32 max) {
-    u32* head = (u32*)libx->memx.alloc(LIBX_ARRAY_HEAD_SIZE + (stride * max), 8);
+    u32* head = (u32*)libx->memx.alloc(ARRAY_HEAD_SIZE + (stride * max), 8);
     if (!head) return NULL; // error: out of memory!
 
-    head[LIBX_ARRAY_SIZE_FIELD] = LIBX_ARRAY_HEAD_SIZE + (stride * max);
-    head[LIBX_ARRAY_STRIDE_FIELD] = stride;
-    head[LIBX_ARRAY_COUNT_FIELD] = 0;
-    head[LIBX_ARRAY_MAX_FIELD] = max;
+    head[ARRAY_SIZE_FIELD] = ARRAY_HEAD_SIZE + (stride * max);
+    head[ARRAY_STRIDE_FIELD] = stride;
+    head[ARRAY_COUNT_FIELD] = 0;
+    head[ARRAY_MAX_FIELD] = max;
 
-    return (void*)((u8*)head + LIBX_ARRAY_HEAD_SIZE);
+    return (void*)((u8*)head + ARRAY_HEAD_SIZE);
 }
 
 void _put_array_impl(void* array, u32 index, void* invalue) {
     if (!array || !invalue || index < 0) return;
 	
-    u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
-    if (index >= head[LIBX_ARRAY_MAX_FIELD] || (head[LIBX_ARRAY_COUNT_FIELD] + 1) > head[LIBX_ARRAY_MAX_FIELD]) return;
+    u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+    if (index >= head[ARRAY_MAX_FIELD] || (head[ARRAY_COUNT_FIELD] + 1) > head[ARRAY_MAX_FIELD]) return;
 
-    u32 offset = (head[LIBX_ARRAY_STRIDE_FIELD] * index);
+    u32 offset = (head[ARRAY_STRIDE_FIELD] * index);
 
     void* slot = ((u8*)array + offset);
-    memcpy(slot, invalue, head[LIBX_ARRAY_STRIDE_FIELD]);
+    memcpy(slot, invalue, head[ARRAY_STRIDE_FIELD]);
 
-    head[LIBX_ARRAY_COUNT_FIELD]++;
+    head[ARRAY_COUNT_FIELD]++;
 }
 
 void _pull_array_impl(void* array, u32 index, void* outvalue) {
     if (!array || outvalue == NULL) return;
 	
-    u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
-    if (index >= head[LIBX_ARRAY_MAX_FIELD] || (head[LIBX_ARRAY_COUNT_FIELD] - 1) < 0) return;
+    u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+    if (index >= head[ARRAY_MAX_FIELD] || (head[ARRAY_COUNT_FIELD] - 1) < 0) return;
     
-    u32 stride = head[LIBX_ARRAY_STRIDE_FIELD];
-    u32 count = head[LIBX_ARRAY_COUNT_FIELD];
+    u32 stride = head[ARRAY_STRIDE_FIELD];
+    u32 count = head[ARRAY_COUNT_FIELD];
     u32 offset = (stride * index);
 
     void* slot = ((u8*)array + offset);
@@ -48,14 +48,14 @@ void _pull_array_impl(void* array, u32 index, void* outvalue) {
         memset((u8*)slot + stride * (count - index), 0, stride);  // zero the last slot
     }
     
-    head[LIBX_ARRAY_COUNT_FIELD]--;
+    head[ARRAY_COUNT_FIELD]--;
 }
 
 void _push_array_impl(void* array, void* invalue) {
     if (!array || !invalue) return;
 	
-	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
-    u32 index = head[LIBX_ARRAY_COUNT_FIELD];
+	u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+    u32 index = head[ARRAY_COUNT_FIELD];
 
     libx->dsx.array.put_array(array, index, invalue);
 }
@@ -63,10 +63,10 @@ void _push_array_impl(void* array, void* invalue) {
 void _pop_array_impl(void* array, void* outvalue) {
     if (!array || outvalue == NULL) return;
 	
-	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
-    if (!head[LIBX_ARRAY_COUNT_FIELD]) return;
+	u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+    if (!head[ARRAY_COUNT_FIELD]) return;
 
-    u32 index = (head[LIBX_ARRAY_COUNT_FIELD] - 1);
+    u32 index = (head[ARRAY_COUNT_FIELD] - 1);
 
     libx->dsx.array.pull_array(array, index, outvalue);
 }
@@ -74,44 +74,44 @@ void _pop_array_impl(void* array, void* outvalue) {
 void* _resize_array_impl(void* array, u32 max) {
     if (!array || !max) return NULL;
     
-	u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
+	u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
     
-    u32 count = head[LIBX_ARRAY_COUNT_FIELD];
-    u32 stride = head[LIBX_ARRAY_STRIDE_FIELD];
-    u32 newsize = LIBX_ARRAY_HEAD_SIZE + (stride * max);
+    u32 count = head[ARRAY_COUNT_FIELD];
+    u32 stride = head[ARRAY_STRIDE_FIELD];
+    u32 newsize = ARRAY_HEAD_SIZE + (stride * max);
 
     u32* newhead = (u32*)libx->memx.realloc(head, newsize, 8);
     if (!newhead) return NULL;
 
-    newhead[LIBX_ARRAY_SIZE_FIELD] = LIBX_ARRAY_HEAD_SIZE + (stride * max);
-    newhead[LIBX_ARRAY_STRIDE_FIELD] = stride;
-    newhead[LIBX_ARRAY_COUNT_FIELD] = count;
-    newhead[LIBX_ARRAY_MAX_FIELD] = max;
+    newhead[ARRAY_SIZE_FIELD] = ARRAY_HEAD_SIZE + (stride * max);
+    newhead[ARRAY_STRIDE_FIELD] = stride;
+    newhead[ARRAY_COUNT_FIELD] = count;
+    newhead[ARRAY_MAX_FIELD] = max;
 
-    return (void*)((u8*)newhead + LIBX_ARRAY_HEAD_SIZE);
+    return (void*)((u8*)newhead + ARRAY_HEAD_SIZE);
 }
 
 void _destroy_array_impl(void* array) {
-    libx->memx.dealloc((void*)((u8*)array - LIBX_ARRAY_HEAD_SIZE));
+    libx->memx.dealloc((void*)((u8*)array - ARRAY_HEAD_SIZE));
 }
 
 Array_Head _get_array_head_impl(void* array) {
     Array_Head arrhead = {0, 0, 0, 0};
     if (!array) return arrhead; // error: null ptr!
 
-    u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
+    u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
     
-    arrhead.size = head[LIBX_ARRAY_SIZE_FIELD];
-    arrhead.stride = head[LIBX_ARRAY_STRIDE_FIELD];
-    arrhead.count = head[LIBX_ARRAY_COUNT_FIELD];
-    arrhead.max = head[LIBX_ARRAY_MAX_FIELD];
+    arrhead.size = head[ARRAY_SIZE_FIELD];
+    arrhead.stride = head[ARRAY_STRIDE_FIELD];
+    arrhead.count = head[ARRAY_COUNT_FIELD];
+    arrhead.max = head[ARRAY_MAX_FIELD];
 
     return arrhead;
 }
 
 void _set_array_head_impl(void* array, u32 field, u32 value) {
-    if (!array || field >= LIBX_ARRAY_FIELDS) return;
-    u32* head = (u32*)((u8*)array - LIBX_ARRAY_HEAD_SIZE);
+    if (!array || field >= ARRAY_FIELDS) return;
+    u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
     head[field] = value;
 }
 /* ---------------- ARRAY ---------------- */
@@ -253,7 +253,7 @@ u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
         Key_Value* temp = (Key_Value*)libx->dsx.array.create_array(sizeof(Key_Value), meta.max * 2);
         if (!temp) return LIBX_FALSE;  // error: out of memory!
 
-        ((u32*)((u8*)temp - LIBX_ARRAY_HEAD_SIZE))[LIBX_ARRAY_COUNT_FIELD] = meta.count;
+        ((u32*)((u8*)temp - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = meta.count;
         memcpy(temp, array->map, meta.stride * meta.max);
         
         libx->dsx.array.destroy_array(array->map);
@@ -309,7 +309,7 @@ cstr* _get_hash_array_keys_impl(Hash_Array* array) {
 		if (array->map[i].key)
             keys[key++] = array->map[i].key;
 	
-    ((u32*)((u8*)keys - LIBX_ARRAY_HEAD_SIZE))[LIBX_ARRAY_COUNT_FIELD] = array->meta.count;
+    ((u32*)((u8*)keys - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = array->meta.count;
     return keys;
 }
 
@@ -323,7 +323,7 @@ void** _get_hash_array_values_impl(Hash_Array* array) {
 		if (array->map[i].key)
             values[value++] = array->map[i].value;
 	
-    ((u32*)((u8*)values - LIBX_ARRAY_HEAD_SIZE))[LIBX_ARRAY_COUNT_FIELD] = array->meta.count;
+    ((u32*)((u8*)values - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = array->meta.count;
     return values;
 }
 /* ---------------- HASH ARRAY ---------------- */
@@ -360,6 +360,7 @@ u8 _libx_init_dsx(void) {
     libx->dsx.array.pull_hash_array = _pull_hash_array_impl;
     libx->dsx.array.destroy_hash_array = _destroy_hash_array_impl;
     
+    libx->meta.usage.dsx = sizeof(Dsx);
 	libx->dsx.init = LIBX_TRUE;
     return 1;
 }
@@ -368,6 +369,7 @@ void _libx_cleanup_dsx(void) {
     if (libx->dsx.init == LIBX_FALSE) return;    // error: Dsx API not initialized!
 	libx->meta.usage.apis &= ~LIBX_DSX;
     libx->dsx.init = LIBX_FALSE;
+    libx->meta.usage.dsx = 0;
     libx->dsx = (Dsx){0};
 }
 /* ---------------- API ---------------- */

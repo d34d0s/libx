@@ -279,6 +279,7 @@ u8 _libx_init_ecsx(void) {
     libx->ecsx.has_component = _has_component_impl;
     libx->ecsx.get_entities = _get_entities_impl;
     
+    libx->meta.usage.ecsx= sizeof(Ecsx);
 	libx->ecsx.init = LIBX_TRUE;
     return LIBX_TRUE;
 }
@@ -304,5 +305,6 @@ void _libx_cleanup_ecsx(void) {
 
 	libx->meta.usage.apis &= ~LIBX_ECSX;
 	libx->ecsx.init = LIBX_FALSE;
+    libx->meta.usage.ecsx = 0;
 	libx->ecsx	= (Ecsx){0};
 }
