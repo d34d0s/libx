@@ -1,4 +1,4 @@
-#include <libx/libx.h>
+#include <corex/corex.h>
 
 typedef struct Some_Data {
     u32 handle;
@@ -7,27 +7,27 @@ typedef struct Some_Data {
 } Some_Data;
 
 void main() {
-    libx_init(LIBX_MEMX|LIBX_DSX|LIBX_GENX);
+    corex_init(COREX_MEMX|COREX_DSX|COREX_GENX);
 
-    Buffer buf;
-    libx->genx.buffer.create((Buffer_Layout){
+    Buffer buffer;
+    corex->genx.buffer.create((Buffer_Layout){
         .type = BUFFER_TYPE_FLOAT32,
         .access = BUFFER_ACCESS_RW,
         .size = BUFFER_SIZE_8B
-    }, &buf);
-    printf("buffer size: %d\n", libx->genx.buffer.get_field(BUFFER_FIELD_SIZE, &buf));
+    }, &buffer);
+    printf("buffer size: %d\n", buffer.meta.size);
 
-    libx->genx.buffer.set_flag(BUFFER_FLAG_AUTOCURSOR, &buf);
-    printf("buffer flags: %d\n", libx->genx.buffer.get_field(BUFFER_FIELD_FLAGS, &buf));
+    corex->genx.buffer.set_flag(BUFFER_FLAG_AUTOCURSOR, &buffer);
+    printf("buffer flags: %d\n", buffer.meta.flags);
 
-    libx->genx.buffer.write(8, &(Some_Data){.handle = 420, .type = 69, .format = 123}, &buf);
-    printf("bytes written: %d (cursor)%d\n", libx->genx.buffer.get_field(BUFFER_FIELD_WRITTEN, &buf), libx->genx.buffer.get_field(BUFFER_FIELD_BYTE, &buf));
+    corex->genx.buffer.write(8, &(Some_Data){.handle = 420, .type = 69, .format = 123}, &buffer);
+    printf("bytes written: %d (cursor)%d\n", buffer.meta.cursor.written, buffer.meta.cursor.byte);
     
     Some_Data data;
-    libx->genx.buffer.read(8, &data, &buf);
-    printf("data read from buffer: %d %d (cursor)%d\n", data.handle, data.format, libx->genx.buffer.get_field(BUFFER_FIELD_BYTE, &buf));
+    corex->genx.buffer.read(8, &data, &buffer);
+    printf("data read from buffer: %d %d (cursor)%d\n", data.handle, data.format, buffer.meta.cursor.byte);
 
-    libx->genx.buffer.destroy(&buf);
+    corex->genx.buffer.destroy(&buffer);
 
-    if (libx_cleanup()) printf("Genx Test Ran!\n");
+    if (corex_cleanup()) printf("Genx Test Ran!\n");
 }

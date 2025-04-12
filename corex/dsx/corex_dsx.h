@@ -1,7 +1,7 @@
-#ifndef __LIBX_DSX_H__
-#define __LIBX_DSX_H__
+#ifndef __COREX_DSX_H__
+#define __COREX_DSX_H__
 
-#include <libx/libx_def.h>
+#include <corex/corex_def.h>
 
 /* ---------------- ARRAY ---------------- */
 typedef struct Array_Head {
@@ -122,7 +122,7 @@ typedef struct Dsx {
     } array;
 } Dsx;
 
-u8 _libx_init_dsx(void);
-void _libx_cleanup_dsx(void);
+u8 _corex_init_dsx(void);
+void _corex_cleanup_dsx(void);
 
-#endif  // LIBX_DSX_H
+#endif  // COREX_DSX_H

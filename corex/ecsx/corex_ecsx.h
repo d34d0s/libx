@@ -1,7 +1,7 @@
-#ifndef __LIBX_ECSX_H__
-#define __LIBX_ECSX_H__
+#ifndef __COREX_ECSX_H__
+#define __COREX_ECSX_H__
 
-#include <libx/libx_def.h>
+#include <corex/corex_def.h>
 
 #define COMPONENT_MAX   (1 << 5)
 #define SYSTEM_MAX      (1 << 3)
@@ -59,7 +59,7 @@ typedef struct Ecsx {
     u8 (*get_component)(u8 id, u32 entity, void* component);
 } Ecsx;
 
-u8 _libx_init_ecsx(void);
-void _libx_cleanup_ecsx(void);
+u8 _corex_init_ecsx(void);
+void _corex_cleanup_ecsx(void);
 
-#endif  // LIBX_ECSX_H
+#endif  // COREX_ECSX_H

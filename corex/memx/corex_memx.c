@@ -1,4 +1,4 @@
-#include <libx/libx.h>
+#include <corex/corex.h>
 
 /* ---------------- STANDARD ---------------- */
 void _dealloc_impl(void* ptr) {
@@ -16,7 +16,7 @@ void _zero_impl(void* ptr, u64 size) {
 }
 
 void* _alloc_impl(u64 size, u64 align) {
-	if (!size || !LIBX_IP2(align)) return NULL;	// error: value error!
+	if (!size || !COREX_IP2(align)) return NULL;	// error: value error!
 
 	// allocate 2 extra bytes for pointer difference
 	// allocate align-1 extra bytes for pointer alignment
@@ -24,7 +24,7 @@ void* _alloc_impl(u64 size, u64 align) {
 	if (!optr) return NULL;	// error: out of memory!
 
 	// move 2 bytes from optr align, zero, and return that address
-	void* aptr = memset((void*)LIBX_ALIGN((u64)((u16*)optr + 1), align), 0, size);
+	void* aptr = memset((void*)COREX_ALIGN((u64)((u16*)optr + 1), align), 0, size);
 
 	// store pointer diff/offset at the head of the aligned pointer;
 	*((u16*)aptr - 1) = (u16)((u64)aptr - (u64)optr);
@@ -33,8 +33,8 @@ void* _alloc_impl(u64 size, u64 align) {
 }
 
 void* _realloc_impl(void* ptr, u64 size, u64 align) {
-	if (!ptr) return libx->memx.alloc(size, align);	// error: null ptr!
-	if (!size || !LIBX_IP2(align)) return NULL;	// error: value error!
+	if (!ptr) return corex->memx.alloc(size, align);	// error: null ptr!
+	if (!size || !COREX_IP2(align)) return NULL;	// error: value error!
 	
 	// retrieve the pointer difference stored before the ptr
 	u16 diff = *((u16*)ptr - 1);
@@ -48,7 +48,7 @@ void* _realloc_impl(void* ptr, u64 size, u64 align) {
 	if (!nptr) return NULL;
 
 	// move 2 bytes from optr align, and assign that address
-	void* aptr = (void*)LIBX_ALIGN((u64)((u16*)nptr + 1), align);
+	void* aptr = (void*)COREX_ALIGN((u64)((u16*)nptr + 1), align);
 
 	// store pointer diff/offset at the head of the aligned pointer;
 	*((u16*)aptr - 1) = (u16)((u64)aptr - (u64)nptr);
@@ -67,7 +67,7 @@ void _arena_reset_impl(Allocator* allocator) {
 void* _arena_alloc_impl(u64 size, u64 align, Allocator* allocator) {
 	if (!allocator || !allocator->context.arena.buffer) return NULL;	// error: null ptr!
 
-	u64 aoffset = LIBX_ALIGN(allocator->context.arena.offset, align);
+	u64 aoffset = COREX_ALIGN(allocator->context.arena.offset, align);
 	if (aoffset + size > allocator->context.arena.max) return NULL;	// error: out of memory!
 
 	allocator->context.arena.commit += size;
@@ -78,108 +78,108 @@ void* _arena_alloc_impl(u64 size, u64 align, Allocator* allocator) {
 
 /* ---------------- ALLOCATOR ---------------- */
 u8 _create_allocator_impl(Alloc_Type type, u64 max, u64 align, Allocator* allocator) {
-	if (type >= ALLOC_TYPES || !max || !LIBX_IP2(align) || !allocator) return LIBX_FALSE;	// error value error!
+	if (type >= ALLOC_TYPES || !max || !COREX_IP2(align) || !allocator) return COREX_FALSE;	// error value error!
 	switch (type) {
 		case ALLOC_DEFAULT:
 		case ALLOC_ARENA: {
 			allocator->type = type;
 	
-			allocator->context.arena.buffer = libx->memx.alloc(max, align);
-			if (!allocator->context.arena.buffer) return LIBX_FALSE;
+			allocator->context.arena.buffer = corex->memx.alloc(max, align);
+			if (!allocator->context.arena.buffer) return COREX_FALSE;
 		
 			allocator->context.arena.offset = 0;
 			allocator->context.arena.max = max;
-			return LIBX_TRUE;
+			return COREX_TRUE;
 		}
 		default: break;
 	}
 }
 
 u8 _destroy_allocator_impl(Allocator* allocator) {
-	if (!allocator || allocator->type >= ALLOC_TYPES) return LIBX_FALSE;	// error: value error!
+	if (!allocator || allocator->type >= ALLOC_TYPES) return COREX_FALSE;	// error: value error!
 	switch (allocator->type)
 	{
 	case ALLOC_DEFAULT:
 	case ALLOC_ARENA: {
-		if (!allocator->context.arena.buffer) return LIBX_FALSE;	// error: null ptr!
-		libx->memx.dealloc(allocator->context.arena.buffer);
+		if (!allocator->context.arena.buffer) return COREX_FALSE;	// error: null ptr!
+		corex->memx.dealloc(allocator->context.arena.buffer);
 		allocator->context.arena.buffer = NULL;
 		allocator->context.arena.offset = 0;
 		allocator->context.arena.max = 0;
-		return LIBX_TRUE;
+		return COREX_TRUE;
 	}
 	default: break;
 	}
-	return LIBX_TRUE;
+	return COREX_TRUE;
 }
 /* ---------------- ALLOCATOR ---------------- */
 
 /* -------------------- GENERICS ------------------ */
 u8 _blob_alloc_impl(Blob* blob, u64 align) {
-	if (!blob || !LIBX_IP2(align) || !blob->size) {
+	if (!blob || !COREX_IP2(align) || !blob->size) {
 		blob->size = 0;
-		return LIBX_FALSE;	// error: null ptr/value error!
+		return COREX_FALSE;	// error: null ptr/value error!
 	}
 	
-	blob->data = libx->memx.alloc(blob->size, align);
+	blob->data = corex->memx.alloc(blob->size, align);
 	if (!blob->data) {
 		blob->size = 0;
-		return LIBX_FALSE;	// error: out of memory!
+		return COREX_FALSE;	// error: out of memory!
 	}
 
-	return LIBX_TRUE;
+	return COREX_TRUE;
 }
 
 u8 _blob_realloc_impl(Blob* blob, u64 size, u64 align) {
-	if (!blob || !blob->data || !size || size > INT_MAX || !LIBX_IP2(align)) return LIBX_FALSE;	// error: null ptr/value error!
+	if (!blob || !blob->data || !size || size > INT_MAX || !COREX_IP2(align)) return COREX_FALSE;	// error: null ptr/value error!
 
-	void* temp = libx->memx.realloc(blob->data, size, align);
-	if (!temp) return LIBX_FALSE;	// error: out of memory!
+	void* temp = corex->memx.realloc(blob->data, size, align);
+	if (!temp) return COREX_FALSE;	// error: out of memory!
 
 	blob->data = temp;
 	blob->size = size;
 
-	return LIBX_TRUE;
+	return COREX_TRUE;
 }
 
 u8 _blob_dealloc_impl(Blob* blob) {
-	if (!blob || !blob->data || !blob->size) return LIBX_FALSE;	// error: null ptr/value error!
-	libx->memx.dealloc(blob->data);
+	if (!blob || !blob->data || !blob->size) return COREX_FALSE;	// error: null ptr/value error!
+	corex->memx.dealloc(blob->data);
 	blob->data = (void*)0;
 	blob->size = 0;
-	return LIBX_TRUE;
+	return COREX_TRUE;
 }
 /* -------------------- GENERICS ------------------ */
 
 /* ---------------- API ---------------- */
-u8 _libx_init_memx(void) {
-    if (!libx) return LIBX_FALSE; // error: null ptr!
-    if (libx->memx.init == LIBX_TRUE) return LIBX_TRUE;    // redundant call: memx API already initialized!
+u8 _corex_init_memx(void) {
+    if (!corex) return COREX_FALSE; // error: null ptr!
+    if (corex->memx.init == COREX_TRUE) return COREX_TRUE;    // redundant call: memx API already initialized!
 
-	libx->memx.alloc = _alloc_impl;
-	libx->memx.zero = _zero_impl;
-	libx->memx.dealloc = _dealloc_impl;
-	libx->memx.realloc = _realloc_impl;
+	corex->memx.alloc = _alloc_impl;
+	corex->memx.zero = _zero_impl;
+	corex->memx.dealloc = _dealloc_impl;
+	corex->memx.realloc = _realloc_impl;
 	
-	libx->memx.blob_alloc = _blob_alloc_impl;
-	libx->memx.blob_dealloc = _blob_dealloc_impl;
-	libx->memx.blob_realloc = _blob_realloc_impl;
+	corex->memx.blob_alloc = _blob_alloc_impl;
+	corex->memx.blob_dealloc = _blob_dealloc_impl;
+	corex->memx.blob_realloc = _blob_realloc_impl;
 	
-	libx->memx.create_allocator = _create_allocator_impl;
-	libx->memx.arena_alloc = _arena_alloc_impl;
-	libx->memx.arena_reset = _arena_reset_impl;
-	libx->memx.destroy_allocator = _destroy_allocator_impl;
+	corex->memx.create_allocator = _create_allocator_impl;
+	corex->memx.arena_alloc = _arena_alloc_impl;
+	corex->memx.arena_reset = _arena_reset_impl;
+	corex->memx.destroy_allocator = _destroy_allocator_impl;
 	
-	libx->meta.usage.memx = sizeof(Memx);
-	libx->memx.init = LIBX_TRUE;
-	return LIBX_TRUE;
+	corex->meta.usage.memx = sizeof(Memx);
+	corex->memx.init = COREX_TRUE;
+	return COREX_TRUE;
 }
 
-void _libx_cleanup_memx(void) {
-    if (libx->memx.init == LIBX_FALSE) return;    // error: memx API not initialized!
-	libx->meta.usage.apis &= ~LIBX_MEMX;
-	libx->memx.init = LIBX_FALSE;
-	libx->meta.usage.memx = 0;
-	libx->memx	= (Memx){0};
+void _corex_cleanup_memx(void) {
+    if (corex->memx.init == COREX_FALSE) return;    // error: memx API not initialized!
+	corex->meta.usage.apis &= ~COREX_MEMX;
+	corex->memx.init = COREX_FALSE;
+	corex->meta.usage.memx = 0;
+	corex->memx	= (Memx){0};
 }
 /* ---------------- API ---------------- */

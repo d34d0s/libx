@@ -1,7 +1,7 @@
-#ifndef __LIBX_MEMX_H__
-#define __LIBX_MEMX_H__
+#ifndef __COREX_MEMX_H__
+#define __COREX_MEMX_H__
 
-#include <libx/libx_def.h>
+#include <corex/corex_def.h>
 
 /**
  * A generic 16 byte `Blob` structure for safely passing and casting types.
@@ -52,7 +52,7 @@ typedef struct Memx {
     void (*arena_reset)(Allocator* allocator);
 } Memx;
 
-u8 _libx_init_memx(void);
-void _libx_cleanup_memx(void);
+u8 _corex_init_memx(void);
+void _corex_cleanup_memx(void);
 
-#endif  // LIBX_MEMX_H
+#endif  // COREX_MEMX_H

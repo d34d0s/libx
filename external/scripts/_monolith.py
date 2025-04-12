@@ -2,17 +2,17 @@ import os, re
 
 # Config
 RE_FLAGS = re.M
-HEADER_GUARD = '__LIBX_H__'
-MODULES_DIR = 'libx'
+HEADER_GUARD = '__COREX_H__'
+MODULES_DIR = 'corex'
 MODULE_ORDER = [
-    'libx/libx_def',
-    'libx/memx/libx_memx',
-    'libx/dsx/libx_dsx',
-    'libx/genx/libx_genx',
-    'libx/ecsx/libx_ecsx',
-    'libx/mathx/libx_mathx',
-    'libx/filex/libx_filex',
-    'libx/libx'
+    'corex/corex_def',
+    'corex/memx/corex_memx',
+    'corex/dsx/corex_dsx',
+    'corex/genx/corex_genx',
+    'corex/ecsx/corex_ecsx',
+    'corex/mathx/corex_mathx',
+    'corex/filex/corex_filex',
+    'corex/corex'
 ]
 
 def strip_includes(text):
@@ -21,7 +21,7 @@ def strip_includes(text):
 
 def strip_directives(text) -> str:
     # Remove #ifndef / #define / #endif directives from headers
-    text = re.sub(r'^#((ifndef)|(define)|(include))\s((<libx.*>)|(__\w+__))$', '', text, flags=RE_FLAGS)
+    text = re.sub(r'^#((ifndef)|(define)|(include))\s((<corex.*>)|(__\w+__))$', '', text, flags=RE_FLAGS)
     text = re.sub(r'#endif\s+//?\s*\w+', '', text, flags=RE_FLAGS)
     return text.strip()
 
@@ -43,22 +43,22 @@ def gen_monolith(out_dir: str):
         output.append(h)
         output.append('')
 
-    output.append('#ifdef LIBX_IMPL')
+    output.append('#ifdef COREX_IMPL')
     output.append('')
 
     for module in MODULE_ORDER:
-        if module == "libx/libx_def": continue
+        if module == "corex/corex_def": continue
         _, c = collect_source(module)
         output.append(f'// ==== {module}.c ====')
         output.append(c)
         output.append('')
 
-    output.append('#endif // LIBX_IMPL')
+    output.append('#endif // COREX_IMPL')
     output.append(f'#endif // {HEADER_GUARD}')
 
-    out_file = f"{out_dir}{os.sep}libx.h"
+    out_file = f"{out_dir}{os.sep}corex.h"
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     with open(out_file, 'w') as header:
         header.write('\n'.join(output))
 
-    print(f'[+] Generated Libx Header At: {out_file}');
+    print(f'[+] Generated Corex Header At: {out_file}');

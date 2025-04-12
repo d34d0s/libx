@@ -1,7 +1,7 @@
 {
     "c-instance": "GCC",
     "c-targets": {
-        "libx": {
+        "corex": {
             "r3make": {
                 "post-build": {
                     "nofiles": null
@@ -14,13 +14,13 @@
                 "DLL_EXPORT"
             ],
             "src-dirs": [
-                "libx"
+                "corex"
             ],
             "inc-dirs": [
                 "."
             ],
-            "out-type": "dll",
-            "out-name": "libx",
+            "out-type": "lib",
+            "out-name": "corex",
             "out-dir": "build"
         },
         "tests": {
@@ -39,7 +39,7 @@
                 "."
             ],
             "lib-links": {
-                "libx": null
+                "corex": null
             },
             "out-type": "exe",
             "out-name": null,

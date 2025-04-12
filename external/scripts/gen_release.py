@@ -7,23 +7,23 @@ CALL_DIR = os.getcwd()
 RELEASE_VER = None
 
 README = """
-libx is a cross-platform, data-oriented game engine written in pure C,
+corex is a cross-platform, data-oriented game engine written in pure C,
 designed to make the development and distribution of games and media simpler.
 
 You can find the latest release and additional information at:
-https://github.com/r3shape/libx
+https://github.com/r3shape/corex
 
 This library is distributed under the terms of the MIT license,
 available in [LICENSE.txt](LICENSE.txt).
 
 # Using this package
-This package contains the `libx` engine built for x64 Windows.
+This package contains the `corex` engine built for x64 Windows.
 
-To use this package, simply replace an existing 64-bit libx.dll with the one included here.
+To use this package, simply replace an existing 64-bit corex.dll with the one included here.
 
 # Development packages
 If you're looking for packages containing headers and static archives, check for this package:
--  libx-dev-2025.0.1-mingw-w64.zip (for development using mingw-w64)
+-  corex-dev-2025.0.1-mingw-w64.zip (for development using mingw-w64)
 
 Happy Coding!
 
@@ -90,7 +90,7 @@ def gen_release() -> None:
         config = json.load(f)
 
     try:
-        artifact = config["c-targets"]["libx"]
+        artifact = config["c-targets"]["corex"]
         out_dir = os_path(artifact["out-dir"])
         out_name = artifact["out-name"]
         out_type = artifact["out-type"]
@@ -99,21 +99,21 @@ def gen_release() -> None:
         return
 
     # Build DLL first
-    config["c-targets"]["libx"]["out-type"] = "dll"
+    config["c-targets"]["corex"]["out-type"] = "dll"
     with open("r3make", "w") as f:
         json.dump(config, f, indent=4)
-    subprocess.call(["r3make", "libx"])
+    subprocess.call(["r3make", "corex"])
 
     # Then build static lib
-    config["c-targets"]["libx"]["out-type"] = "lib"
+    config["c-targets"]["corex"]["out-type"] = "lib"
     with open("r3make", "w") as f:
         json.dump(config, f, indent=4)
-    subprocess.call(["r3make", "libx"])
+    subprocess.call(["r3make", "corex"])
 
     # Get version from version file
     version_path = None
     for root, dirs, files in os.walk(CALL_DIR):
-        if root.endswith(os_path("libx")) and "version" in files:
+        if root.endswith(os_path("corex")) and "version" in files:
             version_path = os.path.join(root, "version")
             break
 
@@ -125,8 +125,8 @@ def gen_release() -> None:
         RELEASE_VER = f.read().strip()
 
     release_base = os_path(f"{CALL_DIR}/release")
-    std_dir = os_path(f"{release_base}/libx-{RELEASE_VER}-mingw-w64")
-    dev_dir = os_path(f"{release_base}/libx-{RELEASE_VER}-dev-mingw-w64")
+    std_dir = os_path(f"{release_base}/corex-{RELEASE_VER}-mingw-w64")
+    dev_dir = os_path(f"{release_base}/corex-{RELEASE_VER}-dev-mingw-w64")
 
     os.makedirs(std_dir, exist_ok=True)
     os.makedirs(dev_dir, exist_ok=True)
@@ -163,7 +163,7 @@ def gen_release() -> None:
     # === Dev release ===
     print("[+] Creating dev release...")
     build_dir = os.path.join(dev_dir, "build")
-    inc_dir = os.path.join(dev_dir, "libx")
+    inc_dir = os.path.join(dev_dir, "corex")
 
     os.makedirs(build_dir, exist_ok=True)
     os.makedirs(inc_dir, exist_ok=True)
@@ -173,11 +173,11 @@ def gen_release() -> None:
     shutil.copyfile(lib_path, os.path.join(build_dir, f"{out_name}.lib"))
 
     # Copy public headers
-    for root, _, files in os.walk(os_path("libx")):
+    for root, _, files in os.walk(os_path("corex")):
         for f in files:
             if f.endswith(".h"):
                 src = os.path.join(root, f)
-                rel = os.path.relpath(root, os_path("libx"))
+                rel = os.path.relpath(root, os_path("corex"))
                 dst_folder = os.path.join(inc_dir, rel)
                 os.makedirs(dst_folder, exist_ok=True)
                 shutil.copyfile(src, os.path.join(dst_folder, f))
