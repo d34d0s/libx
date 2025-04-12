@@ -1,4 +1,4 @@
-# libx
+# Corex
 a library for building things in C.  
 
-> Note: libx targets x64 Windows machines.
+> Note: Corex targets x64 Windows machines.
