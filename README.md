@@ -45,7 +45,7 @@ int main() {
 
 #### Option B: Development Integration
 
-Use the `corex-dev` release if you want access to full source code, headers, and prebuilt binaries:
+Use the `corex-dev` release if you want access to all headers, and prebuilt binaries:
 
 - Add `corex/` to your compiler's header search path
 - Link against the provided `.lib` or `.dll` build artifact.
