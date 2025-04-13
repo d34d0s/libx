@@ -1,7 +1,6 @@
 #ifndef __COREX_MATHX_H__
 #define __COREX_MATHX_H__
 
-#include <math.h>
 #include <corex/corex_def.h>
 
 #define COREX_PI 3.14159265358979323846

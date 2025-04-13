@@ -103,6 +103,12 @@ typedef struct Buffer {
     } meta;
 } Buffer;
 
+#define STRING_MAXIMUM_SIZE (COREX_MB * 4)
+typedef struct String {
+    u8* buffer;
+    Array_Head meta;
+} String;
+
 typedef struct Genx {
     struct bin {
         u8 (*depth8)(u8 value);
@@ -116,18 +122,28 @@ typedef struct Genx {
         u8 (*destroy)(Buffer* buffer);
         
         u8 (*read)(u64 count, void* bytes, Buffer* buffer);
-        u8 (*write)( u64 count, void* bytes, Buffer* buffer);
-        u8 (*peek)(u64 offset, u64 count, void* bytes, Buffer* buffer);
-        u8 (*inject)(u64 offset, u64 count, void* bytes, Buffer* buffer);
+        u8 (*write)(u64 count, void* bytes, Buffer* buffer);
+        u8 (*peek)(i64 offset, u64 count, void* bytes, Buffer* buffer);
+        u8 (*inject)(i64 offset, u64 count, void* bytes, Buffer* buffer);
         
+        u8 (*tell)(Buffer_Cursor cursor, Buffer* buffer);
         u8 (*rewind)(Buffer_Cursor cursor, Buffer* buffer);
-        u8 (*seek)(Buffer_Cursor cursor, u64 byte, Buffer* buffer);
-        u8 (*seekr)(Buffer_Cursor cursor, u64 offset, Buffer* buffer);
+        u8 (*seek)(Buffer_Cursor cursor, u64 offset, Buffer* buffer);
+        u8 (*seekr)(Buffer_Cursor cursor, i64 offset, Buffer* buffer);
         
         u8 (*set_flag)(Buffer_Flag flag, Buffer* buffer);
         u8 (*has_flag)(Buffer_Flag flag, Buffer* buffer);
         u8 (*rem_flag)(Buffer_Flag flag, Buffer* buffer);
     } buffer;
+
+    struct string {
+        u8 (*create)(u32 size, String* string);
+        u8 (*destroy)(String* string);
+        u32 (*len)(String* string);
+        u8 (*copy)(String* src, String* dest);
+        u8 (*ncopy)(u32 count, String* src, String* dest);
+        u8 (*grow)(u32 count, u8* chars, String* string);
+    } string;
 
     u8 init;
 } Genx;

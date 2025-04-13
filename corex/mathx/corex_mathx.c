@@ -1,4 +1,5 @@
 #include <corex/corex.h>
+#include <math.h>
 
 /* ---------------- UTILITY ------------- */
 void _print_vec2_impl(cstr name, Vec2 vec) {
