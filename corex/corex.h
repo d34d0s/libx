@@ -26,6 +26,7 @@ corex is a singleton pointer to the active runtime.
 
 #include <corex/memx/corex_memx.h>
 #include <corex/dsx/corex_dsx.h>
+#include <corex/strx/corex_strx.h>
 #include <corex/genx/corex_genx.h>
 #include <corex/ecsx/corex_ecsx.h>
 #include <corex/mathx/corex_mathx.h>
@@ -36,10 +37,11 @@ typedef enum Corex_Api {
     COREX_MEMX   = (1 << 0),
     COREX_MATHX  = (1 << 1),
     COREX_DSX    = (1 << 2),
-    COREX_GENX   = (1 << 3),
-    COREX_FILEX  = (1 << 4),
-    COREX_ECSX   = (1 << 5),
-    COREX_ALL    = COREX_MEMX|COREX_MATHX|COREX_DSX|COREX_GENX|COREX_FILEX|COREX_ECSX,
+    COREX_STRX   = (1 << 3),
+    COREX_GENX   = (1 << 4),
+    COREX_FILEX  = (1 << 5),
+    COREX_ECSX   = (1 << 6),
+    COREX_ALL    = COREX_MEMX|COREX_MATHX|COREX_DSX|COREX_STRX|COREX_GENX|COREX_FILEX|COREX_ECSX,
 } Corex_Api;
 
 typedef struct Corex_Metadata {
@@ -53,6 +55,7 @@ typedef struct Corex_Metadata {
         u8 apis;            // bitmask passed to corex_init
         u64 memx;
         u64 dsx;
+        u64 strx;
         u64 genx;
         u64 ecsx;
         u64 mathx;
@@ -63,18 +66,18 @@ typedef struct Corex_Metadata {
 typedef struct Corex {
     Memx memx;
     Dsx dsx;
+    Strx strx;
     Genx genx;
     Ecsx ecsx;
     Mathx mathx;
     Filex filex;
     Corex_Metadata meta;
-
     void (*dump)(void);
 } Corex;
 extern Corex* corex;
 
-COREX_EXPOSE u8 corex_init(Corex_Api mask);
-COREX_EXPOSE u8 corex_deinit(Corex_Api mask);
-COREX_EXPOSE u8 corex_cleanup(void);
+COREX_EXPOSE byte corex_init(Corex_Api mask);
+COREX_EXPOSE byte corex_deinit(Corex_Api mask);
+COREX_EXPOSE byte corex_cleanup(void);
 
 #endif  // COREX_H

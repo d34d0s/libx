@@ -12,21 +12,21 @@ struct _storage {
     f32 fvalue[ENTITY_MAX];
 } storage = {0};
 
-u8 add_component(u32 entity) {
+byte add_component(u32 entity) {
     storage.tag[entity] = "COMPONENT TAG";
     storage.ivalue[entity] = 0;
     storage.fvalue[entity] = 0.0f;
     return COREX_TRUE;
 }
 
-u8 rem_component(u32 entity) {
+byte rem_component(u32 entity) {
     storage.tag[entity] = 0;
     storage.ivalue[entity] = 0;
     storage.fvalue[entity] = 0;
     return COREX_TRUE;
 }
 
-u8 get_component(u32 entity, void* component) {
+byte get_component(u32 entity, void* component) {
     if (entity < 0 || entity > ENTITY_MAX || !component) return COREX_FALSE;
     *(my_component*)component = (my_component){
         .tag = storage.tag[entity],
@@ -36,23 +36,23 @@ u8 get_component(u32 entity, void* component) {
     return COREX_TRUE;
 }
 
-u8 pre_component_system(u32 entity) {
+byte pre_component_system(u32 entity) {
     printf("(PRE) Entity In My Component System: %d\n", entity);
     return COREX_TRUE;
 }
 
-u8 main_component_system(u32 entity) {
+byte main_component_system(u32 entity) {
     printf("(MAIN) Entity In My Component System: %d\n", entity);
     return COREX_TRUE;
 }
 
-u8 post_component_system(u32 entity) {
+byte post_component_system(u32 entity) {
     printf("(POST) Entity In My Component System: %d\n", entity);
     return COREX_TRUE;
 }
 
 void main() {
-    corex_init(COREX_ALL);
+    corex_init(COREX_MEMX|COREX_DSX|COREX_ECSX);
 
     // register a component
     if (corex->ecsx.register_component(0, &storage, add_component, rem_component, get_component)) {
@@ -71,7 +71,7 @@ void main() {
     }
 
     // create an entity with our components
-    u32 entity = corex->ecsx.create_entity_with(2, (u8[]){0, 1});
+    u32 entity = corex->ecsx.create_entity_with(2, (byte[]){0, 1});
     
     // since the component storage exists on the caller side...
     // the caller can manipulate entity-component data
@@ -111,6 +111,7 @@ void main() {
         
     if (corex->ecsx.unregister_systems(0)) printf("All Component Systems Unregistered!\n");
     if (corex->ecsx.unregister_component(0)) printf("Component Unregistered!\n");
+    if (corex->ecsx.unregister_component(1)) printf("Component Unregistered!\n");
 
     if (corex_cleanup()) printf("Ecsx Test Ran!\n");
 }

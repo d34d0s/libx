@@ -72,12 +72,12 @@ void* _arena_alloc_impl(u64 size, u64 align, Allocator* allocator) {
 
 	allocator->context.arena.commit += size;
 	allocator->context.arena.offset = aoffset + size;
-	return (u8*)allocator->context.arena.buffer + aoffset;
+	return (byte*)allocator->context.arena.buffer + aoffset;
 }
 /* ---------------- ARENA ALLOCATOR ---------------- */
 
 /* ---------------- ALLOCATOR ---------------- */
-u8 _create_allocator_impl(Alloc_Type type, u64 max, u64 align, Allocator* allocator) {
+byte _create_allocator_impl(Alloc_Type type, u64 max, u64 align, Allocator* allocator) {
 	if (type >= ALLOC_TYPES || !max || !COREX_IP2(align) || !allocator) return COREX_FALSE;	// error value error!
 	switch (type) {
 		case ALLOC_DEFAULT:
@@ -93,9 +93,10 @@ u8 _create_allocator_impl(Alloc_Type type, u64 max, u64 align, Allocator* alloca
 		}
 		default: break;
 	}
+	return COREX_FALSE;
 }
 
-u8 _destroy_allocator_impl(Allocator* allocator) {
+byte _destroy_allocator_impl(Allocator* allocator) {
 	if (!allocator || allocator->type >= ALLOC_TYPES) return COREX_FALSE;	// error: value error!
 	switch (allocator->type)
 	{
@@ -115,7 +116,7 @@ u8 _destroy_allocator_impl(Allocator* allocator) {
 /* ---------------- ALLOCATOR ---------------- */
 
 /* -------------------- GENERICS ------------------ */
-u8 _blob_alloc_impl(Blob* blob, u64 align) {
+byte _blob_alloc_impl(Blob* blob, u64 align) {
 	if (!blob || !COREX_IP2(align) || !blob->size) {
 		blob->size = 0;
 		return COREX_FALSE;	// error: null ptr/value error!
@@ -130,7 +131,7 @@ u8 _blob_alloc_impl(Blob* blob, u64 align) {
 	return COREX_TRUE;
 }
 
-u8 _blob_realloc_impl(Blob* blob, u64 size, u64 align) {
+byte _blob_realloc_impl(Blob* blob, u64 size, u64 align) {
 	if (!blob || !blob->data || !size || size > INT_MAX || !COREX_IP2(align)) return COREX_FALSE;	// error: null ptr/value error!
 
 	void* temp = corex->memx.realloc(blob->data, size, align);
@@ -142,7 +143,7 @@ u8 _blob_realloc_impl(Blob* blob, u64 size, u64 align) {
 	return COREX_TRUE;
 }
 
-u8 _blob_dealloc_impl(Blob* blob) {
+byte _blob_dealloc_impl(Blob* blob) {
 	if (!blob || !blob->data || !blob->size) return COREX_FALSE;	// error: null ptr/value error!
 	corex->memx.dealloc(blob->data);
 	blob->data = (void*)0;
@@ -152,7 +153,7 @@ u8 _blob_dealloc_impl(Blob* blob) {
 /* -------------------- GENERICS ------------------ */
 
 /* ---------------- API ---------------- */
-u8 _corex_init_memx(void) {
+byte _corex_init_memx(void) {
     if (!corex) return COREX_FALSE; // error: null ptr!
     if (corex->memx.init == COREX_TRUE) return COREX_TRUE;    // redundant call: memx API already initialized!
 

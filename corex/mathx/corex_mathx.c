@@ -287,22 +287,22 @@ Vec3 _mult4v3_impl(Mat4 m, Vec3 v) {
 }
 
 Mat4 _scale4_impl(f32 x, f32 y, f32 z) {
-    Mat4 result = {
+    Mat4 result = { .m={
         x, 0, 0, 0,
         0, y, 0, 0,
         0, 0, z, 0,
         0, 0, 0, 1
-    };
+    }};
     return result;
 }
 
 Mat4 _trans4_impl(f32 x, f32 y, f32 z) {
-    Mat4 result = {
+    Mat4 result = { .m={
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         x, y, z, 1
-    };
+    }};
     return result;
 }
 
@@ -310,12 +310,12 @@ Mat4 _rotx4_impl(f32 angle) {
     f32 rad = corex->mathx.scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
-    Mat4 result = {
+    Mat4 result = { .m={
         1, 0, 0, 0,
         0, cos_angle, sin_angle, 0,
         0,-sin_angle, cos_angle, 0,
         0, 0, 0, 1
-    };
+    }};
     return result;
 }
 
@@ -323,12 +323,12 @@ Mat4 _roty4_impl(f32 angle) {
     f32 rad = corex->mathx.scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
-    Mat4 result = {
+    Mat4 result = { .m={
         cos_angle, 0,-sin_angle, 0,
         0, 1, 0, 0,
         sin_angle, 0, cos_angle, 0,
         0, 0, 0, 1
-    };
+    }};
     return result;
 }
 
@@ -336,12 +336,12 @@ Mat4 _rotz4_impl(f32 angle) {
     f32 rad = corex->mathx.scalar.radians(angle);
     f32 cos_angle = cosf(rad);
     f32 sin_angle = sin(rad);
-    Mat4 result = {
+    Mat4 result = { .m={
         cos_angle, sin_angle, 0, 0,
        -sin_angle, cos_angle, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
-    };
+    }};
     return result;
 }
 
@@ -375,7 +375,7 @@ Mat4 _rot4_impl(Vec3 axis, f32 angle) {
 
 
 Mat4 _mult4_impl(Mat4 a, Mat4 b) {
-    Mat4 result = {0};
+    Mat4 result = { .m={0}};
     for (int row = 0; row < 4; ++row) {
         for (int col = 0; col < 4; ++col) {
             for (int i = 0; i < 4; ++i) {
@@ -393,12 +393,12 @@ Mat4 _lookat_impl(Vec3 eye, Vec3 center, Vec3 up) {
     Vec3 s = corex->mathx.vec.norm3(corex->mathx.vec.cross3(f, up));
     Vec3 u = corex->mathx.vec.norm3(corex->mathx.vec.cross3(s, f));
 
-    Mat4 result = {
+    Mat4 result = { .m={
         s.x, u.x,-f.x, 0.0f,
         s.y, u.y,-f.y, 0.0f,
         s.z, u.z,-f.z, 0.0f,
        -corex->mathx.vec.dot3(s, eye), -corex->mathx.vec.dot3(u, eye), corex->mathx.vec.dot3(f, eye), 1.0f,
-    };
+    }};
     
     return result;
 }
@@ -412,13 +412,13 @@ Mat4 _ortho_impl(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
     f32 tpb = top + bottom;
     f32 fpn = far + near;
     
-    Mat4 result = {
+    Mat4 result = { .m={
         2.0f / rml,  0.0f,       0.0f,       0.0f,
         0.0f,        2.0f / tmb, 0.0f,       0.0f,
         0.0f,        0,         -2.0f / fmn, 0.0f,
         -rpl / rml, -tpb / tmb, -fpn / fmn, 1.0f
 
-    };
+    }};
 
     return result;
 }
@@ -429,18 +429,18 @@ Mat4 _perspective_impl(f32 fovy, f32 aspect, f32 near, f32 far) {
     f32 fmn = far - near;
     f32 fn = far * near;
     
-    Mat4 result = {
+    Mat4 result = { .m={
         1.0f / (aspect * tfov),   0,                0,                       0,
         0,                        1.0f / tfov,      0,                       0,
         0,                        0,               -fpn / fmn,              -1.0f,
         0,                        0,               -(2.0f * fn) / fmn,       1.0f
-    };
+    }};
 
     return result;
 }
 /* ---------------- MAT4 ---------------- */
 
-u8 _corex_init_mathx(void) {
+byte _corex_init_mathx(void) {
     if (!corex) return COREX_FALSE; // error: null ptr!
     if (corex->mathx.init == COREX_TRUE) return COREX_TRUE;    // redundant call: Mathx API already initialized!
 

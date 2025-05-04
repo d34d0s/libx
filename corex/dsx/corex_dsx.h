@@ -42,7 +42,6 @@ typedef struct Hash_Array {
 /* ---------------- HASH ARRAY ---------------- */
 
 typedef struct Dsx {
-    u8 init;
     struct array {
         void (*destroy_array)(void* array);
 
@@ -98,7 +97,7 @@ typedef struct Dsx {
         void (*collapse_linked_array)(Linked_Array* array);
 
         Hash_Array* (*create_hash_array)(u32 max);
-        u8 (*put_hash_array)(Hash_Array* array, cstr key, void* value);
+        byte (*put_hash_array)(Hash_Array* array, cstr key, void* value);
         void* (*get_hash_array)(Hash_Array* array, cstr key);
         
         /**
@@ -116,13 +115,13 @@ typedef struct Dsx {
          * Note: Don't forget to call `structx->destroy_array()` on the array returned from `get_hash_array_values` when no longer needed!
          */
         void** (*get_hash_array_values)(Hash_Array* array);
-        u8 (*pull_hash_array)(Hash_Array* array, cstr key, Key_Value* out);
+        byte (*pull_hash_array)(Hash_Array* array, cstr key, Key_Value* out);
         void (*destroy_hash_array)(Hash_Array* array);
-
     } array;
+    byte init;
 } Dsx;
 
-u8 _corex_init_dsx(void);
+byte _corex_init_dsx(void);
 void _corex_cleanup_dsx(void);
 
 #endif  // COREX_DSX_H

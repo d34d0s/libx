@@ -4,22 +4,22 @@
 #include <corex/corex_def.h>
 
 typedef struct Filex {
-    u8 init;
-    u8 (*exists)(cstr path);
+    byte (*exists)(cstr path);
     u64 (*size)(cstr path);
-    u8 (*remove)(cstr path);
+    byte (*remove)(cstr path);
     str (*read)(cstr path, u64 size);
-    u8 (*copy)(cstr src, cstr dest, u64 size);
-    u8 (*copyb)(cstr src, cstr dest, u64 size);
-    u8 (*readb)(cstr path, u64 size, void* out);
-    u8 (*write)(cstr path, cstr lines, u8 preserve);
-    u8 (*append)(cstr path, cstr lines, u8 newline);
-    u8 (*writeb)(cstr path, u64 size, u8 preserve, void* ptr);
-    u8 (*appendb)(cstr path, u64 size, u8 newline, void* ptr);
-    u8 (*process)(cstr path, u64 lines, void (*callback)(cstr line));
+    byte (*copy)(cstr src, cstr dest, u64 size);
+    byte (*copyb)(cstr src, cstr dest, u64 size);
+    byte (*readb)(cstr path, u64 size, void* out);
+    byte (*write)(cstr path, cstr lines, byte preserve);
+    byte (*append)(cstr path, cstr lines, byte newline);
+    byte (*writeb)(cstr path, u64 size, byte preserve, void* ptr);
+    byte (*appendb)(cstr path, u64 size, byte newline, void* ptr);
+    byte (*process)(cstr path, u64 lines, void (*callback)(cstr line));
+    byte init;
 } Filex;
 
-u8 _corex_init_filex(void);
+byte _corex_init_filex(void);
 void _corex_cleanup_filex(void);
 
 #endif  // COREX_FILEX_H

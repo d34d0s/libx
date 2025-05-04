@@ -12,18 +12,18 @@ void* _create_array_impl(u32 stride, u32 max) {
     head[ARRAY_COUNT_FIELD] = 0;
     head[ARRAY_MAX_FIELD] = max;
 
-    return (void*)((u8*)head + ARRAY_HEAD_SIZE);
+    return (void*)((byte*)head + ARRAY_HEAD_SIZE);
 }
 
 void _put_array_impl(void* array, u32 index, void* invalue) {
     if (!array || !invalue || index < 0) return;
 	
-    u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+    u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
     if (index >= head[ARRAY_MAX_FIELD] || (head[ARRAY_COUNT_FIELD] + 1) > head[ARRAY_MAX_FIELD]) return;
 
     u32 offset = (head[ARRAY_STRIDE_FIELD] * index);
 
-    void* slot = ((u8*)array + offset);
+    void* slot = ((byte*)array + offset);
     memcpy(slot, invalue, head[ARRAY_STRIDE_FIELD]);
 
     head[ARRAY_COUNT_FIELD]++;
@@ -32,20 +32,20 @@ void _put_array_impl(void* array, u32 index, void* invalue) {
 void _pull_array_impl(void* array, u32 index, void* outvalue) {
     if (!array || outvalue == NULL) return;
 	
-    u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+    u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
     if (index >= head[ARRAY_MAX_FIELD] || (head[ARRAY_COUNT_FIELD] - 1) < 0) return;
     
     u32 stride = head[ARRAY_STRIDE_FIELD];
     u32 count = head[ARRAY_COUNT_FIELD];
     u32 offset = (stride * index);
 
-    void* slot = ((u8*)array + offset);
+    void* slot = ((byte*)array + offset);
     memcpy(outvalue, slot, stride);
     
     // shift array down
     if (index < count) {
-        memmove(slot, (u8*)slot + stride, stride * (count - index));
-        memset((u8*)slot + stride * (count - index), 0, stride);  // zero the last slot
+        memmove(slot, (byte*)slot + stride, stride * (count - index));
+        memset((byte*)slot + stride * (count - index), 0, stride);  // zero the last slot
     }
     
     head[ARRAY_COUNT_FIELD]--;
@@ -54,7 +54,7 @@ void _pull_array_impl(void* array, u32 index, void* outvalue) {
 void _push_array_impl(void* array, void* invalue) {
     if (!array || !invalue) return;
 	
-	u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+	u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
     u32 index = head[ARRAY_COUNT_FIELD];
 
     corex->dsx.array.put_array(array, index, invalue);
@@ -63,7 +63,7 @@ void _push_array_impl(void* array, void* invalue) {
 void _pop_array_impl(void* array, void* outvalue) {
     if (!array || outvalue == NULL) return;
 	
-	u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+	u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
     if (!head[ARRAY_COUNT_FIELD]) return;
 
     u32 index = (head[ARRAY_COUNT_FIELD] - 1);
@@ -74,7 +74,7 @@ void _pop_array_impl(void* array, void* outvalue) {
 void* _resize_array_impl(void* array, u32 max) {
     if (!array || !max) return NULL;
     
-	u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+	u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
     
     u32 count = head[ARRAY_COUNT_FIELD];
     u32 stride = head[ARRAY_STRIDE_FIELD];
@@ -88,18 +88,18 @@ void* _resize_array_impl(void* array, u32 max) {
     newhead[ARRAY_COUNT_FIELD] = count;
     newhead[ARRAY_MAX_FIELD] = max;
 
-    return (void*)((u8*)newhead + ARRAY_HEAD_SIZE);
+    return (void*)((byte*)newhead + ARRAY_HEAD_SIZE);
 }
 
 void _destroy_array_impl(void* array) {
-    corex->memx.dealloc((void*)((u8*)array - ARRAY_HEAD_SIZE));
+    corex->memx.dealloc((void*)((byte*)array - ARRAY_HEAD_SIZE));
 }
 
 Array_Head _get_array_head_impl(void* array) {
     Array_Head arrhead = {0, 0, 0, 0};
     if (!array) return arrhead; // error: null ptr!
 
-    u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+    u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
     
     arrhead.size = head[ARRAY_SIZE_FIELD];
     arrhead.stride = head[ARRAY_STRIDE_FIELD];
@@ -111,7 +111,7 @@ Array_Head _get_array_head_impl(void* array) {
 
 void _set_array_head_impl(void* array, u32 field, u32 value) {
     if (!array || field >= ARRAY_FIELDS) return;
-    u32* head = (u32*)((u8*)array - ARRAY_HEAD_SIZE);
+    u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
     head[field] = value;
 }
 /* ---------------- ARRAY ---------------- */
@@ -184,7 +184,7 @@ i32 _fnv1a_hash(cstr string) {
     if (!string) return -1;
     u32 hash = 2166136261u; // FNV-1a offset basis
     while (*string) {
-        hash ^= (u8)*string++;  // XOR with current character
+        hash ^= (byte)*string++;  // XOR with current character
         hash *= 16777619;       // multiply by FNV-1a prime
     }; return hash;
 }
@@ -245,7 +245,7 @@ Hash_Array* _create_hash_array_impl(u32 max) {
     return array;
 }
 
-u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
+byte _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
     if (!array || !key || !value) return COREX_FALSE;  // error: null ptr!
 
     Array_Head meta = corex->dsx.array.get_array_head(array->map);
@@ -253,7 +253,7 @@ u8 _put_hash_array_impl(Hash_Array* array, cstr key, void* value) {
         Key_Value* temp = (Key_Value*)corex->dsx.array.create_array(sizeof(Key_Value), meta.max * 2);
         if (!temp) return COREX_FALSE;  // error: out of memory!
 
-        ((u32*)((u8*)temp - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = meta.count;
+        ((u32*)((byte*)temp - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = meta.count;
         memcpy(temp, array->map, meta.stride * meta.max);
         
         corex->dsx.array.destroy_array(array->map);
@@ -282,7 +282,7 @@ void* _get_hash_array_impl(Hash_Array* array, cstr key) {
     return array->map[index].value;
 }
 
-u8 _pull_hash_array_impl(Hash_Array* array, cstr key, Key_Value* out) {
+byte _pull_hash_array_impl(Hash_Array* array, cstr key, Key_Value* out) {
     if (!array || !key) return COREX_FALSE;  // error: null ptr!
 
     i32 index = _probe_key_hash_array(array, key);
@@ -309,7 +309,7 @@ cstr* _get_hash_array_keys_impl(Hash_Array* array) {
 		if (array->map[i].key)
             keys[key++] = array->map[i].key;
 	
-    ((u32*)((u8*)keys - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = array->meta.count;
+    ((u32*)((byte*)keys - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = array->meta.count;
     return keys;
 }
 
@@ -323,14 +323,14 @@ void** _get_hash_array_values_impl(Hash_Array* array) {
 		if (array->map[i].key)
             values[value++] = array->map[i].value;
 	
-    ((u32*)((u8*)values - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = array->meta.count;
+    ((u32*)((byte*)values - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = array->meta.count;
     return values;
 }
 /* ---------------- HASH ARRAY ---------------- */
 
 
 /* ---------------- API ---------------- */
-u8 _corex_init_dsx(void) {
+byte _corex_init_dsx(void) {
     if (!corex) return COREX_FALSE; // error: null ptr!
     if (corex->dsx.init == COREX_TRUE) return COREX_TRUE;    // redundant call: Dsx API already initialized!
 

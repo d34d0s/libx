@@ -12,6 +12,8 @@
 typedef char*               str;
 typedef const char*         cstr;
 
+typedef char                byte;
+
 typedef float               f32;
 typedef double              f64;
 

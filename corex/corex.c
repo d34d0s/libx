@@ -3,6 +3,26 @@
 
 Corex* corex = NULL;
 
+byte (*init_table[])(void) = {
+    _corex_init_memx,
+    _corex_init_mathx,
+    _corex_init_dsx,
+    _corex_init_strx,
+    _corex_init_genx,
+    _corex_init_filex,
+    _corex_init_ecsx
+};
+
+void (*cleanup_table[])(void) = {
+    _corex_cleanup_memx,
+    _corex_cleanup_mathx,
+    _corex_cleanup_dsx,
+    _corex_cleanup_strx,
+    _corex_cleanup_genx,
+    _corex_cleanup_filex,
+    _corex_cleanup_ecsx
+};
+
 void _dump_impl(void) {
     u64 total = corex->meta.usage.memx + corex->meta.usage.dsx + corex->meta.usage.genx + corex->meta.usage.ecsx + corex->meta.usage.mathx + corex->meta.usage.filex;
     printf("---Corex %s---\n", corex->meta.version.string);
@@ -16,7 +36,7 @@ void _dump_impl(void) {
     printf("\n-----Total %lluB-----\n", total);
 }
 
-u8 corex_init(Corex_Api mask) {
+byte corex_init(Corex_Api mask) {
     if (!mask) return COREX_FALSE;
 
     if (corex == NULL) {
@@ -53,53 +73,32 @@ u8 corex_init(Corex_Api mask) {
 
     corex->meta.usage.apis |= new_mask;
 
-    if ((new_mask & COREX_ALL) == COREX_ALL) {
-        if (!_corex_init_memx()   ||
-            !_corex_init_mathx()  ||
-            !_corex_init_dsx()    ||
-            !_corex_init_genx()   ||
-            !_corex_init_ecsx()   ||
-            !_corex_init_filex()) {
-            return COREX_FALSE;
+    COREX_FORI(0, 6, 1) {
+        if (new_mask & (1 << i)) {
+            if (init_table[i] == NULL) return COREX_FALSE;
+            if (!init_table[i]()) return COREX_FALSE;
         }
-        return COREX_TRUE;
     }
-
-    if (new_mask & COREX_MEMX)  { if (!_corex_init_memx())   return COREX_FALSE; }
-    if (new_mask & COREX_MATHX) { if (!_corex_init_mathx())  return COREX_FALSE; }
-    if (new_mask & COREX_DSX)   { if (!_corex_init_dsx())    return COREX_FALSE; }
-    if (new_mask & COREX_GENX)  { if (!_corex_init_genx())   return COREX_FALSE; }
-    if (new_mask & COREX_FILEX) { if (!_corex_init_filex())  return COREX_FALSE; }
-    if (new_mask & COREX_ECSX)  { if (!_corex_init_ecsx())   return COREX_FALSE; }
 
     return COREX_TRUE;
 }
 
-u8 corex_deinit(Corex_Api mask) {
+byte corex_deinit(Corex_Api mask) {
     if (!corex) return COREX_FALSE;
     if (!mask) return COREX_FALSE;
 
-    if (mask == COREX_ALL) {
-        _corex_cleanup_ecsx();
-        _corex_cleanup_filex();
-        _corex_cleanup_genx();
-        _corex_cleanup_dsx();
-        _corex_cleanup_mathx();
-        _corex_cleanup_memx();
-        return COREX_TRUE;
+    COREX_FORI(0, 6, 1) {
+        if (mask & (1 << i)) {
+            if (cleanup_table[i] == NULL) return COREX_FALSE;
+            cleanup_table[i]();
+            printf("(mask) %d (module)%d", mask, (1 << i));
+        }
     }
-   
-    if (mask & COREX_ECSX)  { _corex_cleanup_ecsx(); }
-    if (mask & COREX_FILEX) { _corex_cleanup_filex(); }
-    if (mask & COREX_GENX)  { _corex_cleanup_genx(); }
-    if (mask & COREX_DSX)   { _corex_cleanup_dsx(); }
-    if (mask & COREX_MATHX) { _corex_cleanup_mathx(); }
-    if (mask & COREX_MEMX)  { _corex_cleanup_memx(); }
-    
+
     return COREX_TRUE;
 }
 
-u8 corex_cleanup(void) {
+byte corex_cleanup(void) {
     if (!corex) return COREX_TRUE;
     corex_deinit(corex->meta.usage.apis);
     free(corex);

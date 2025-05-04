@@ -8,7 +8,7 @@
                 }
             },
             "c-flags": [
-                "-std=c99"
+                "-std=c99", "-Wall", "-Werror"
             ],
             "c-defines": [
                 "DLL_EXPORT"

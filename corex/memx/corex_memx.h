@@ -35,24 +35,24 @@ typedef struct Allocator {
 } Allocator;
 
 typedef struct Memx {
-    u8 init;
+    byte init;
     void (*dealloc)(void* ptr);
     void (*zero)(void* ptr, u64 size);
     void* (*alloc)(u64 size, u64 align);
     void* (*realloc)(void* ptr, u64 size, u64 align);
 
-    u8 (*blob_alloc)(Blob* blob, u64 align);
-    u8 (*blob_realloc)(Blob* blob, u64 size, u64 align);
-    u8 (*blob_dealloc)(Blob* blob);
+    byte (*blob_alloc)(Blob* blob, u64 align);
+    byte (*blob_realloc)(Blob* blob, u64 size, u64 align);
+    byte (*blob_dealloc)(Blob* blob);
 
-    u8 (*create_allocator)(Alloc_Type type, u64 max, u64 align, Allocator* allocator);
-    u8 (*destroy_allocator)(Allocator* allocator);
+    byte (*create_allocator)(Alloc_Type type, u64 max, u64 align, Allocator* allocator);
+    byte (*destroy_allocator)(Allocator* allocator);
 
     void* (*arena_alloc)(u64 size, u64 align, Allocator* allocator);
     void (*arena_reset)(Allocator* allocator);
 } Memx;
 
-u8 _corex_init_memx(void);
+byte _corex_init_memx(void);
 void _corex_cleanup_memx(void);
 
 #endif  // COREX_MEMX_H

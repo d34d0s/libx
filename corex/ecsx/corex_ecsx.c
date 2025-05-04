@@ -16,9 +16,9 @@ u32 _create_entity_impl(void) {
     return entity;
 }
 
-u32 _create_entity_with_impl(u8 count, u8* ids) {
+u32 _create_entity_with_impl(byte count, byte* ids) {
     if (count < 0 || count > COMPONENT_MAX) return COREX_FALSE;
-    u8 result = 0;
+    byte result = 0;
     u32 entity = corex->ecsx.create_entity();
     COREX_FORI(0, count, 1) {
         result = corex->ecsx.add_component(ids[i], entity);
@@ -37,7 +37,7 @@ void _destroy_entity_impl(u32 entity) {
 }
 
 
-u8 _register_component_impl(
+byte _register_component_impl(
     u8 id, void* storage,
     COMPONENT_ADD_FPTR add_func,
     COMPONENT_REM_FPTR rem_func,
@@ -59,7 +59,7 @@ u8 _register_component_impl(
     return COREX_TRUE;
 }
 
-u8 _unregister_component_impl(u8 id) {
+byte _unregister_component_impl(u8 id) {
     if (id < 0 || id > COMPONENT_MAX) return COREX_FALSE; // error: value error!
     if (!corex->ecsx.component_manager.component_storage[id]) return COREX_FALSE;  // error: component not registered!
 
@@ -74,7 +74,7 @@ u8 _unregister_component_impl(u8 id) {
     return COREX_TRUE;
 }
 
-u8 _register_system_impl(u8 id, cstr name, void* system) {
+byte _register_system_impl(u8 id, cstr name, void* system) {
     if (id < 0 || id > COMPONENT_MAX || !system) return COREX_FALSE; // error: null ptr/value error!
     
     Array_Head head = corex->dsx.array.get_array_head(((Hash_Array**)corex->ecsx.component_manager.component_system)[id]);
@@ -85,13 +85,13 @@ u8 _register_system_impl(u8 id, cstr name, void* system) {
     return COREX_TRUE;
 }
 
-u8 _unregister_system_impl(u8 id, cstr name) {
+byte _unregister_system_impl(u8 id, cstr name) {
     if (id < 0 || id > COMPONENT_MAX || !name) return COREX_FALSE; // error: null ptr/value error!
     Key_Value temp = {NULL};
     return corex->dsx.array.pull_hash_array(((Hash_Array**)corex->ecsx.component_manager.component_system)[id], name, &temp);
 }
 
-u8 _unregister_systems_impl(u8 id) {
+byte _unregister_systems_impl(u8 id) {
     if (id < 0 || id > COMPONENT_MAX) return COREX_FALSE; // error: null ptr/value error!
     Key_Value temp = {NULL};
     
@@ -107,7 +107,7 @@ u8 _unregister_systems_impl(u8 id) {
 }
 
 
-u8 _run_system_impl(u8 id, cstr name) {
+byte _run_system_impl(u8 id, cstr name) {
     if (id < 0 || id > COMPONENT_MAX || !name) return COREX_FALSE; // error: null ptr/value error!
     
     COMPONENT_SYSTEM_FPTR system = corex->dsx.array.get_hash_array(((Hash_Array**)corex->ecsx.component_manager.component_system)[id], name);
@@ -119,9 +119,10 @@ u8 _run_system_impl(u8 id, cstr name) {
         }
     }
 
+	return COREX_TRUE;
 }
 
-u8 _run_systems_impl(u8 id) {
+byte _run_systems_impl(u8 id) {
     if (id < 0 || id > COMPONENT_MAX) return COREX_FALSE; // error: null ptr/value error!
     
     cstr* keys = NULL;
@@ -142,30 +143,30 @@ u8 _run_systems_impl(u8 id) {
     return COREX_TRUE;
 }
 
-u8 _add_component_impl(u8 id, u32 entity) {
+byte _add_component_impl(u8 id, u32 entity) {
     if (entity >= ENTITY_MAX || entity < 0) return COREX_FALSE;  // error: value error!
     if ((corex->ecsx.entity_manager.mask[entity] & (1<<id)) == (1<<id)) return COREX_FALSE; // error: entity already has this component!
     
-    u8 result = ((COMPONENT_ADD_FPTR)corex->ecsx.component_manager.add_component_fptr[id])(entity);
+    byte result = ((COMPONENT_ADD_FPTR)corex->ecsx.component_manager.add_component_fptr[id])(entity);
     corex->ecsx.entity_manager.mask[entity] |= (1 << id);
     return result;
 }
 
-u8 _rem_component_impl(u8 id, u32 entity) {
+byte _rem_component_impl(u8 id, u32 entity) {
     if (entity >= ENTITY_MAX || entity < 0) return COREX_FALSE;  // error: value error!
     if ((corex->ecsx.entity_manager.mask[entity] & (1<<id)) != (1<<id)) return COREX_FALSE; // error: entity does not have this component!
 
-    u8 result = ((COMPONENT_REM_FPTR)corex->ecsx.component_manager.rem_component_fptr[id])(entity);
+    byte result = ((COMPONENT_REM_FPTR)corex->ecsx.component_manager.rem_component_fptr[id])(entity);
     corex->ecsx.entity_manager.mask[entity] &= ~(1<<id);
     return result;
 }
 
-u8 _has_component_impl(u8 id, u32 entity) {
+byte _has_component_impl(u8 id, u32 entity) {
     if (entity >= ENTITY_MAX || entity < 0) return COREX_FALSE;  // error: null ptr/value error!
     return ((corex->ecsx.entity_manager.mask[entity] & (1<<id)) == (1<<id)) ? COREX_TRUE : COREX_FALSE;
 }
 
-u8 _get_component_impl(u8 id, u32 entity, void* component) {
+byte _get_component_impl(u8 id, u32 entity, void* component) {
     if (entity >= ENTITY_MAX || entity < 0 || !component) return COREX_FALSE;  // error: null ptr/value error!
     if ((corex->ecsx.entity_manager.mask[entity] & (1<<id)) != (1<<id)) return COREX_FALSE;
 
@@ -183,7 +184,7 @@ u32* _get_entities_impl(u8 id) {
 }
 
 
-u8 _corex_init_ecsx(void) {
+byte _corex_init_ecsx(void) {
     if (!corex) return COREX_FALSE; // error: null ptr!
     if (corex->ecsx.init == COREX_TRUE) return COREX_TRUE;    // redundant call: Ecsx API already initialized!
 

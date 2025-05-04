@@ -18,7 +18,6 @@ typedef struct Mat4 { f32 m[16]; } Mat4;
 /* ---------------- MATRIX 4 ---------------- */
 
 typedef struct Mathx {
-    u8 init;
     struct scalar {
         // Scalar Math
         f32 (*radians)(f32 deg);
@@ -98,9 +97,10 @@ typedef struct Mathx {
         */
         Mat4 (*perspective)(f32 fov, f32 aspect, f32 near, f32 far);
     } mat;    
+    byte init;
 } Mathx;
 
-u8 _corex_init_mathx(void);
+byte _corex_init_mathx(void);
 void _corex_cleanup_mathx(void);
 
 #endif  // COREX_MATHX_H

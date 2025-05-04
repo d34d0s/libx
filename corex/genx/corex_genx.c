@@ -5,31 +5,31 @@
 #define BUFFER_CAN_READ(b) ((b)->meta.access != BUFFER_ACCESS_NONE)
 
 
-u8 _depth8_impl(u8 value) {
-u8 depth = 0;
-    COREX_FOR(u8, bit, 0, 8, 1) {
+byte _depth8_impl(byte value) {
+byte depth = 0;
+    COREX_FOR(byte, bit, 0, 8, 1) {
         depth = (COREX_GET_BITS(value, bit)) ? bit+1 : depth;
     }
     return depth;
 }
 
-u8 _pack8_impl(u8 value1, u8 value2) {
-    u8 depth = corex->genx.bin.depth8(value2);
-    u8 packed = 0;
+byte _pack8_impl(byte value1, byte value2) {
+    byte depth = corex->genx.bin.depth8(value2);
+    byte packed = 0;
     packed = value1 << depth;
     packed |= value2;
     return packed;
 }
 
-u8* _unpack8_impl(u8 value, u8 depth, u8* out) {
-    u8 lmask = (1 << depth) - 1;
+byte* _unpack8_impl(byte value, byte depth, byte* out) {
+    byte lmask = (1 << depth) - 1;
     out[0] = value >> depth;
     out[1] = value & lmask;
     return out;
 }
 
 
-u8 _create_buffer_impl(Buffer_Layout layout, Buffer* buffer) {
+byte _create_buffer_impl(Buffer_Layout layout, Buffer* buffer) {
     if (!buffer ||
         !layout.size || layout.size > BUFFER_SIZE_MAX   ||
         !layout.type || layout.type > BUFFER_TYPES      ||
@@ -53,7 +53,7 @@ u8 _create_buffer_impl(Buffer_Layout layout, Buffer* buffer) {
     return COREX_TRUE;
 }
 
-u8 _reset_impl(Buffer* buffer) {
+byte _reset_impl(Buffer* buffer) {
     if (!BUFFER_VALID(buffer)) {
         return COREX_FALSE;  // error: null ptr/buffer in a "bad" state!
     }
@@ -65,7 +65,7 @@ u8 _reset_impl(Buffer* buffer) {
     return COREX_TRUE;
 }
 
-u8 _destroy_buffer_impl(Buffer* buffer) {
+byte _destroy_buffer_impl(Buffer* buffer) {
     if (!BUFFER_VALID(buffer)) return COREX_FALSE;  // error: null ptr!
 
     corex->memx.dealloc(buffer->data);
@@ -80,22 +80,21 @@ u8 _destroy_buffer_impl(Buffer* buffer) {
 }
 
 
-u8 _read_buffer_impl(u64 count, void* bytes, Buffer* buffer) {
+byte _read_buffer_impl(u64 count, void* bytes, Buffer* buffer) {
     if (!BUFFER_VALID(buffer) || !BUFFER_CAN_READ(buffer) || !count || !bytes) {
         return COREX_FALSE;  // error: null ptr/buffer in a "bad" state!
     }
 
-    COREX_FOR(u64, byte, 0, count, 1) {
-        if (!((u8*)buffer->data + byte)) break;    // error: null byte encountered!
-        if (buffer->meta.cursor.byte + byte >= buffer->meta.size) break;
-        *((u8*)bytes + byte) = *(((u8*)buffer->data + buffer->meta.cursor.byte) + byte);
+    COREX_FOR(u64, b, 0, count, 1) {
+        if (buffer->meta.cursor.byte + b >= buffer->meta.size) break;
+        *((byte*)bytes + b) = *(((byte*)buffer->data + buffer->meta.cursor.byte) + b);
     }
     
     buffer->meta.cursor.byte += (COREX_GET_BITS(buffer->meta.flags, BUFFER_FLAG_AUTOCURSOR)) ? count : 0;
     return COREX_TRUE;
 }
 
-u8 _write_buffer_impl(u64 count, void* bytes, Buffer* buffer) {
+byte _write_buffer_impl(u64 count, void* bytes, Buffer* buffer) {
     if (!BUFFER_VALID(buffer) || !BUFFER_CAN_WRITE(buffer) || !count || !bytes) {
         return COREX_FALSE;  // error: null ptr/buffer in a "bad" state!
     }
@@ -104,10 +103,9 @@ u8 _write_buffer_impl(u64 count, void* bytes, Buffer* buffer) {
         return COREX_FALSE;  // error: not enough space for this write!
     }
     
-    COREX_FOR(u64, byte, 0, count, 1) {
-        if (!((u8*)bytes + byte)) break;    // error: null byte encountered!
-        if (buffer->meta.cursor.byte + byte >= buffer->meta.size) break;
-        *(((u8*)buffer->data + buffer->meta.cursor.byte) + byte) = *((u8*)bytes + byte);
+    COREX_FOR(u64, b, 0, count, 1) {
+        if (buffer->meta.cursor.byte + b >= buffer->meta.size) break;
+        *(((byte*)buffer->data + buffer->meta.cursor.byte) + b) = *((byte*)bytes + b);
     }
     
     buffer->meta.cursor.byte += (COREX_GET_BITS(buffer->meta.flags, BUFFER_FLAG_AUTOCURSOR)) ? count : 0;
@@ -115,7 +113,7 @@ u8 _write_buffer_impl(u64 count, void* bytes, Buffer* buffer) {
     return COREX_TRUE;
 }
 
-u8 _peek_impl(i64 offset, u64 count, void* bytes, Buffer* buffer) {
+byte _peek_impl(i64 offset, u64 count, void* bytes, Buffer* buffer) {
     if (!BUFFER_VALID(buffer) || !BUFFER_CAN_READ(buffer)) return COREX_FALSE;
     if (!bytes || !count ||
         count > buffer->meta.size ||
@@ -124,11 +122,12 @@ u8 _peek_impl(i64 offset, u64 count, void* bytes, Buffer* buffer) {
     ) return COREX_FALSE;
     u64 restore = buffer->meta.cursor.byte;
     buffer->meta.cursor.byte += offset;
-    u8 result = corex->genx.buffer.read(count, bytes, buffer);
+    byte result = corex->genx.buffer.read(count, bytes, buffer);
     buffer->meta.cursor.byte = restore;
+    return result;
 }
 
-u8 _inject_impl(i64 offset, u64 count, void* bytes, Buffer* buffer) {
+byte _inject_impl(i64 offset, u64 count, void* bytes, Buffer* buffer) {
     if (!BUFFER_VALID(buffer) || !BUFFER_CAN_WRITE(buffer)) return COREX_FALSE;
     if (!bytes || !count ||
         count > buffer->meta.size ||
@@ -137,13 +136,13 @@ u8 _inject_impl(i64 offset, u64 count, void* bytes, Buffer* buffer) {
     ) return COREX_FALSE;
     u64 restore = buffer->meta.cursor.byte;
     buffer->meta.cursor.byte += offset;
-    u8 result = corex->genx.buffer.write(count, bytes, buffer);
+    byte result = corex->genx.buffer.write(count, bytes, buffer);
     buffer->meta.cursor.byte = restore;
     return result;
 }
 
 
-u8 _tell_impl(Buffer_Cursor cursor, Buffer* buffer) {
+byte _tell_impl(Buffer_Cursor cursor, Buffer* buffer) {
     if (!BUFFER_VALID(buffer) || cursor < 0 || cursor > BUFFER_CURSOR_TYPES) return COREX_FALSE;
     switch (cursor) {
         case BUFFER_CURSOR_BIT: {
@@ -155,9 +154,10 @@ u8 _tell_impl(Buffer_Cursor cursor, Buffer* buffer) {
         case BUFFER_CURSOR_NONE:    // fall through to default
         default: break;
     }
+    return COREX_TRUE;
 }
 
-u8 _rewind_impl(Buffer_Cursor cursor, Buffer* buffer) {
+byte _rewind_impl(Buffer_Cursor cursor, Buffer* buffer) {
     if (!BUFFER_VALID(buffer) || !BUFFER_CAN_WRITE(buffer)) return COREX_FALSE;
     if (cursor < 0 || cursor > BUFFER_CURSOR_TYPES) return COREX_FALSE;
     switch (cursor) {
@@ -173,9 +173,10 @@ u8 _rewind_impl(Buffer_Cursor cursor, Buffer* buffer) {
         case BUFFER_CURSOR_TYPES:   // fall through to default
         default: return COREX_FALSE;
     }
+    return COREX_TRUE;
 }
 
-u8 _seek_impl(Buffer_Cursor cursor, u64 offset, Buffer* buffer) {
+byte _seek_impl(Buffer_Cursor cursor, u64 offset, Buffer* buffer) {
     if (!BUFFER_VALID(buffer) || !BUFFER_CAN_WRITE(buffer)) return COREX_FALSE;
     if (offset < 0 || cursor < 0 || cursor > BUFFER_CURSOR_TYPES) return COREX_FALSE;
     switch (cursor) {
@@ -195,7 +196,7 @@ u8 _seek_impl(Buffer_Cursor cursor, u64 offset, Buffer* buffer) {
     }
 }
 
-u8 _seekr_impl(Buffer_Cursor cursor, i64 offset, Buffer* buffer) {
+byte _seekr_impl(Buffer_Cursor cursor, i64 offset, Buffer* buffer) {
     if (!BUFFER_VALID(buffer) || !BUFFER_CAN_WRITE(buffer)) return COREX_FALSE;
     if (cursor < 0 || cursor > BUFFER_CURSOR_TYPES) return COREX_FALSE;
     switch (cursor) {
@@ -224,7 +225,7 @@ u8 _seekr_impl(Buffer_Cursor cursor, i64 offset, Buffer* buffer) {
 }
 
 
-u8 _set_flag_impl(Buffer_Flag flag, Buffer* buffer) {
+byte _set_flag_impl(Buffer_Flag flag, Buffer* buffer) {
     if (!BUFFER_VALID(buffer)) {
         return COREX_FALSE;  // error: null ptr/buffer in a "bad" state!
     }
@@ -232,14 +233,14 @@ u8 _set_flag_impl(Buffer_Flag flag, Buffer* buffer) {
     return COREX_TRUE;
 }
 
-u8 _has_flag_impl(Buffer_Flag flag, Buffer* buffer) {
+byte _has_flag_impl(Buffer_Flag flag, Buffer* buffer) {
     if (!BUFFER_VALID(buffer)) {
         return COREX_FALSE;  // error: null ptr/buffer in a "bad" state!
     }
     return (COREX_GET_BITS(buffer->meta.flags, flag)) ? COREX_TRUE : COREX_FALSE;
 }
 
-u8 _rem_flag_impl(Buffer_Flag flag, Buffer* buffer) {
+byte _rem_flag_impl(Buffer_Flag flag, Buffer* buffer) {
     if (!BUFFER_VALID(buffer)) {
         return COREX_FALSE;  // error: null ptr/buffer in a "bad" state!
     }
@@ -248,61 +249,7 @@ u8 _rem_flag_impl(Buffer_Flag flag, Buffer* buffer) {
 }
 
 
-u8 _create_string_impl(u32 size, String* string) {
-    if (!string || !size || size >= STRING_MAXIMUM_SIZE) return COREX_FALSE;
-    
-    string->buffer = (u8*)corex->dsx.array.create_array(sizeof(u8), size+1);
-
-    if (!string->buffer) return COREX_FALSE;
-
-    string->meta = corex->dsx.array.get_array_head(string->buffer);
-    string->buffer[size] = '\0';
-    return COREX_TRUE;
-}
-
-u8 _destroy_string_impl(String* string) {
-    if (!string || !string->buffer) return COREX_FALSE;
-    corex->dsx.array.destroy_array(string->buffer);
-    string->buffer = NULL;
-    string->meta.stride = 0;
-    string->meta.count = 0;
-    string->meta.size = 0;
-    string->meta.max = 0;
-    return COREX_TRUE;
-}
-
-u32 _len_string_impl(String* string) {
-    if (!string || !string->buffer) return COREX_FALSE;
-    return string->meta.count;
-}
-
-u8 _copy_string_impl(String* src, String* dest) {
-    if (!src || !src->buffer || !dest || !dest->buffer) return COREX_FALSE;
-    return corex->genx.string.grow(src->meta.count, src->buffer, dest);
-}
-
-u8 _ncopy_string_impl(u32 size, String* src, String* dest) {
-    if (!src || !src->buffer || !dest || !dest->buffer) return COREX_FALSE;
-    return corex->genx.string.grow(size, src->buffer, dest);
-}
-
-u8 _grow_string_impl(u32 count, u8* chars, String* string) {
-    if (!count || count >= STRING_MAXIMUM_SIZE || !chars || !string || !string->buffer) {
-        return COREX_FALSE;
-    }
-    
-    Array_Head head = corex->dsx.array.get_array_head(string->buffer);
-    COREX_FORI(head.count, count, 1) {
-        corex->dsx.array.put_array(string->buffer, i, chars + i);
-    }
-    
-    string->meta = corex->dsx.array.get_array_head(string->buffer);
-    string->buffer[count] = '\0';
-    return COREX_TRUE;
-}
-
-
-u8 _corex_init_genx(void) {
+byte _corex_init_genx(void) {
     if (!corex) return COREX_FALSE; // error: null ptr!
     if (corex->genx.init == COREX_TRUE) return COREX_TRUE;    // redundant call: Genx API already initialized!
 
@@ -334,13 +281,6 @@ u8 _corex_init_genx(void) {
     corex->genx.buffer.set_flag = _set_flag_impl;
     corex->genx.buffer.has_flag = _has_flag_impl;
     corex->genx.buffer.rem_flag = _rem_flag_impl;
-    
-    corex->genx.string.create = _create_string_impl;
-    corex->genx.string.destroy = _destroy_string_impl;
-    corex->genx.string.len = _len_string_impl;
-    corex->genx.string.copy = _copy_string_impl;
-    corex->genx.string.ncopy = _ncopy_string_impl;
-    corex->genx.string.grow = _grow_string_impl;
 
     corex->genx.bin.depth8 = _depth8_impl;
     corex->genx.bin.pack8 = _pack8_impl;

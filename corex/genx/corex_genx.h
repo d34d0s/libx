@@ -1,5 +1,5 @@
-#ifndef __LIBX_GENX_H__
-#define __LIBX_GENX_H__
+#ifndef __COREX_GENX_H__
+#define __COREX_GENX_H__
 
 #include <corex/corex_def.h>
 
@@ -82,9 +82,9 @@ typedef enum Buffer_Field {
 } Buffer_Field;
 
 typedef struct Buffer_Layout {
-    u8 type;
+    byte type;
     u64 size;
-    u8 access;
+    byte access;
 } Buffer_Layout;
 
 typedef struct Buffer {
@@ -93,62 +93,46 @@ typedef struct Buffer {
         struct cursor {
             u64 written;
             u64 byte;
-            u8 bit;
+            byte bit;
         } cursor;
         u64 size;
-        u8 flags;
-        u8 type;
-        u8 state;
-        u8 access;
+        byte flags;
+        byte type;
+        byte state;
+        byte access;
     } meta;
 } Buffer;
 
-#define STRING_MAXIMUM_SIZE (COREX_MB * 4)
-typedef struct String {
-    u8* buffer;
-    Array_Head meta;
-} String;
-
 typedef struct Genx {
     struct bin {
-        u8 (*depth8)(u8 value);
-        u8 (*pack8)(u8 value1, u8 value2);
-        u8* (*unpack8)(u8 value, u8 depth, u8* out);
+        byte (*depth8)(byte value);
+        byte (*pack8)(byte value1, byte value2);
+        byte* (*unpack8)(byte value, byte depth, byte* out);
     } bin;
 
     struct buffer {
-        u8 (*create)(Buffer_Layout layout, Buffer* buffer);
-        u8 (*reset)(Buffer* buffer);
-        u8 (*destroy)(Buffer* buffer);
+        byte (*create)(Buffer_Layout layout, Buffer* buffer);
+        byte (*reset)(Buffer* buffer);
+        byte (*destroy)(Buffer* buffer);
         
-        u8 (*read)(u64 count, void* bytes, Buffer* buffer);
-        u8 (*write)(u64 count, void* bytes, Buffer* buffer);
-        u8 (*peek)(i64 offset, u64 count, void* bytes, Buffer* buffer);
-        u8 (*inject)(i64 offset, u64 count, void* bytes, Buffer* buffer);
+        byte (*read)(u64 count, void* bytes, Buffer* buffer);
+        byte (*write)(u64 count, void* bytes, Buffer* buffer);
+        byte (*peek)(i64 offset, u64 count, void* bytes, Buffer* buffer);
+        byte (*inject)(i64 offset, u64 count, void* bytes, Buffer* buffer);
         
-        u8 (*tell)(Buffer_Cursor cursor, Buffer* buffer);
-        u8 (*rewind)(Buffer_Cursor cursor, Buffer* buffer);
-        u8 (*seek)(Buffer_Cursor cursor, u64 offset, Buffer* buffer);
-        u8 (*seekr)(Buffer_Cursor cursor, i64 offset, Buffer* buffer);
+        byte (*tell)(Buffer_Cursor cursor, Buffer* buffer);
+        byte (*rewind)(Buffer_Cursor cursor, Buffer* buffer);
+        byte (*seek)(Buffer_Cursor cursor, u64 offset, Buffer* buffer);
+        byte (*seekr)(Buffer_Cursor cursor, i64 offset, Buffer* buffer);
         
-        u8 (*set_flag)(Buffer_Flag flag, Buffer* buffer);
-        u8 (*has_flag)(Buffer_Flag flag, Buffer* buffer);
-        u8 (*rem_flag)(Buffer_Flag flag, Buffer* buffer);
+        byte (*set_flag)(Buffer_Flag flag, Buffer* buffer);
+        byte (*has_flag)(Buffer_Flag flag, Buffer* buffer);
+        byte (*rem_flag)(Buffer_Flag flag, Buffer* buffer);
     } buffer;
-
-    struct string {
-        u8 (*create)(u32 size, String* string);
-        u8 (*destroy)(String* string);
-        u32 (*len)(String* string);
-        u8 (*copy)(String* src, String* dest);
-        u8 (*ncopy)(u32 count, String* src, String* dest);
-        u8 (*grow)(u32 count, u8* chars, String* string);
-    } string;
-
-    u8 init;
+    byte init;
 } Genx;
 
-u8 _corex_init_genx(void);
+byte _corex_init_genx(void);
 void _corex_cleanup_genx(void);
 
-#endif  // LIBX_GENX_H
+#endif  // COREX_GENX_H

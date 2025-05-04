@@ -1,13 +1,13 @@
 #include <corex/corex.h>
 
-u8 _exists_impl(cstr path) {
+byte _exists_impl(cstr path) {
     FILE* file = fopen(path, "rb");
     if (!file) return COREX_FALSE;
     fclose(file);
     return COREX_TRUE;
 }
 
-u8 _copy_impl(cstr src, cstr dest, u64 size) {
+byte _copy_impl(cstr src, cstr dest, u64 size) {
     FILE* srcf = fopen(src, "rb");
     if (!srcf) return COREX_FALSE;   // error: file not found!
     
@@ -60,7 +60,7 @@ str _read_impl(cstr path, u64 size) {
     return out;
 }
 
-u8 _readb_impl(cstr path, u64 size, void* out) {
+byte _readb_impl(cstr path, u64 size, void* out) {
     FILE* file = fopen(path, "rb");
     if (!file) return COREX_FALSE; // error: file not found!
 
@@ -75,12 +75,12 @@ u8 _readb_impl(cstr path, u64 size, void* out) {
     return COREX_TRUE;
 }
 
-u8 _remove_impl(cstr path) {
+byte _remove_impl(cstr path) {
     if (remove(path) != COREX_FALSE) return COREX_FALSE;  // error: failed to delete file!
     return COREX_TRUE;
 }
 
-u8 _write_impl(cstr path, cstr lines, u8 preserve) {
+byte _write_impl(cstr path, cstr lines, byte preserve) {
     FILE* file = fopen(path, preserve ? "ab" : "wb");
     if (!file) return COREX_FALSE;   // error: failed to write to file!
 
@@ -100,7 +100,7 @@ u8 _write_impl(cstr path, cstr lines, u8 preserve) {
     return COREX_TRUE;
 }
 
-u8 _writeb_impl(cstr path, u64 size, u8 preserve, void* ptr) {
+byte _writeb_impl(cstr path, u64 size, byte preserve, void* ptr) {
     FILE* file = fopen(path, preserve ? "ab" : "wb");
     if (!file) return COREX_FALSE;   // error: failed to write to file!
 
@@ -114,19 +114,19 @@ u8 _writeb_impl(cstr path, u64 size, u8 preserve, void* ptr) {
     return COREX_TRUE;
 }
 
-u8 _append_impl(cstr path, cstr lines, u8 newline) {
-    u8 result = corex->filex.write(path, lines, 1);
+byte _append_impl(cstr path, cstr lines, byte newline) {
+    byte result = corex->filex.write(path, lines, 1);
     if (newline) result = corex->filex.write(path, "\n", 1);
     return result;
 }
 
-u8 _appendb_impl(cstr path, u64 size, u8 newline, void* ptr) {
-    u8 result = corex->filex.writeb(path, size, 1, ptr);
+byte _appendb_impl(cstr path, u64 size, byte newline, void* ptr) {
+    byte result = corex->filex.writeb(path, size, 1, ptr);
     if (newline) result = corex->filex.write(path, "\n", 1);
     return result;
 }
 
-u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
+byte _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
     FILE* file = fopen(path, "rb");
     if (!file) return COREX_FALSE;    // error: failed to open file!
 
@@ -143,7 +143,7 @@ u8 _process_impl(cstr path, u64 lines, void (*callback)(cstr line)) {
 }
 
 
-u8 _corex_init_filex(void) {
+byte _corex_init_filex(void) {
     if (!corex) return COREX_FALSE; // error: null ptr!
     if (corex->filex.init == COREX_TRUE) return COREX_TRUE;    // redundant call: Filex API already initialized!
 

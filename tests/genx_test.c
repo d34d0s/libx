@@ -8,6 +8,7 @@ typedef struct Some_Data {
 
 void main() {
     corex_init(COREX_MEMX|COREX_DSX|COREX_GENX);
+    printf("OK!");
     Buffer buffer;
     corex->genx.buffer.create((Buffer_Layout){
         .type = BUFFER_TYPE_FLOAT32,
@@ -47,26 +48,6 @@ void main() {
     corex->genx.buffer.peek(-4, 4, &more_data, &buffer);
     printf("(injected)more data: %d\n", more_data);
 
-    String string;
-    corex->genx.string.create(5, &string);
-    printf("my string: %s (len)%d\n", string.buffer, corex->genx.string.len(&string));
-    corex->genx.string.grow(3, "Hi!", &string);
-    printf("my string: %s (len)%d\n", string.buffer, corex->genx.string.len(&string));
-    
-    String string2;
-    corex->genx.string.create(5, &string2);
-    corex->genx.string.copy(&string, &string2);
-    printf("my string 2: %s (len)%d\n", string2.buffer, corex->genx.string.len(&string2));
-
-    String string3;
-    corex->genx.string.create(2, &string3);
-    corex->genx.string.ncopy(2, &string2, &string3);
-    printf("my string 3: %s (len)%d\n", string3.buffer, corex->genx.string.len(&string3));
-
-
-    corex->genx.string.destroy(&string3);
-    corex->genx.string.destroy(&string2);
-    corex->genx.string.destroy(&string);
     corex->genx.buffer.destroy(&buffer);
 
     if (corex_cleanup()) printf("Genx Test Ran!\n");
