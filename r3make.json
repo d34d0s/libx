@@ -1,0 +1,24 @@
+{
+    "main": {
+        "defines": ["SSDK_BUILD_SOURCE"],
+        "flags": ["-Wall", "-Werror", "-std=c99"],
+        
+        "includes": ["."],
+        "sources": ["src/SSDK/*.c"],
+        
+        "type": "dll",
+        "name": "SSDK",
+        "dest": "build"
+    },
+    
+    "tests": {
+        "flags": ["-Wall", "-Werror", "-std=c99"],
+        
+        "includes": ["."],
+        "sources": ["src/tests/*.c"],
+        "libraries": {"SSDK": "build"},
+
+        "type": "exe",
+        "dest": "build"
+    }
+}
