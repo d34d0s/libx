@@ -15,8 +15,8 @@ Modules:
 #ifndef __SSDK_H__
 #define __SSDK_H__
 
-#include <include/SSDK/SaneDS.h>
 #include <include/SSDK/SaneLog.h>
+#include <include/SSDK/SaneData.h>
 #include <include/SSDK/SaneMath.h>
 #include <include/SSDK/SaneMemory.h>
 

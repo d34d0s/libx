@@ -41,7 +41,7 @@ typedef struct HashArray {
 } HashArray;
 /* ---------------- HASH ARRAY ---------------- */
 
-typedef struct SaneDS {
+typedef struct SaneData {
     SaneModule module;
 
     struct {
@@ -75,8 +75,8 @@ typedef struct SaneDS {
         SSDK_FNPTR(ptr, get, cstr key, HashArray* array);
     } hashArray;
 
-} SaneDS;
-extern SaneDS* saneDS;
+} SaneData;
+extern SaneData* saneData;
 
 SSDK_FUNC byte ssdkInitDS(none);
 SSDK_FUNC none ssdkExitDS(none);

@@ -26,14 +26,14 @@ int main() {
         saneMemory->dealloc(mem);
 
         if (ssdkInitDS()) {
-            ssdkModuleDump(&saneDS->module);
+            ssdkModuleDump(&saneData->module);
             
             HashArray harr;
-            saneDS->hashArray.create(16, &harr);
-            saneDS->hashArray.put("Key1", &(u32){420}, &harr);
+            saneData->hashArray.create(16, &harr);
+            saneData->hashArray.put("Key1", &(u32){420}, &harr);
 
-            cstr* keys = saneDS->hashArray.getKeys(&harr);
-            u32** values = (u32**)saneDS->hashArray.getValues(&harr);
+            cstr* keys = saneData->hashArray.getKeys(&harr);
+            u32** values = (u32**)saneData->hashArray.getValues(&harr);
 
             keys[0] = "";
             values[0] = &(u32){1};
