@@ -20,13 +20,4 @@ Modules:
 #include <include/SSDK/SaneMath.h>
 #include <include/SSDK/SaneMemory.h>
 
-typedef struct SSDK {
-    SaneLog log;
-    SaneMath math;
-} SSDK;
-extern SSDK* ssdk;
-
-SSDK_FUNC byte ssdkInit();
-SSDK_FUNC none ssdkExit();
-
 #endif  // __SSDK_H__
