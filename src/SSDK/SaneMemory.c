@@ -65,7 +65,7 @@ void* _realloc_impl(void* ptr, u64 size, u64 align) {
 
 
 /* ---------------- ALLOCATOR ---------------- */
-byte _create_allocator_impl(SaneAllocatorType type, u64 max, u64 align, SaneAllocator* allocator) {
+byte _create_allocator_impl(AllocatorType type, u64 max, u64 align, Allocator* allocator) {
 	saneMemory->module.calls++;
 	if (type >= SANE_ALLOC_TYPES || !max || !SSDK_IP2(align) || !allocator) return SSDK_FALSE;	// error value error!
 	switch (type) {
@@ -85,7 +85,7 @@ byte _create_allocator_impl(SaneAllocatorType type, u64 max, u64 align, SaneAllo
 	return SSDK_FALSE;
 }
 
-byte _destroy_allocator_impl(SaneAllocator* allocator) {
+byte _destroy_allocator_impl(Allocator* allocator) {
 	saneMemory->module.calls++;
 	if (!allocator || allocator->type >= SANE_ALLOC_TYPES) return SSDK_FALSE;	// error: value error!
 	switch (allocator->type)
@@ -107,13 +107,13 @@ byte _destroy_allocator_impl(SaneAllocator* allocator) {
 
 
 /* ---------------- ARENA ALLOCATOR ---------------- */
-void _arena_reset_impl(SaneAllocator* allocator) {
+void _arena_reset_impl(Allocator* allocator) {
 	saneMemory->module.calls++;
 	if (!allocator) return;	// error: null ptr!
 	allocator->context.arena.offset = 0;
 }
 
-void* _arena_alloc_impl(u64 size, u64 align, SaneAllocator* allocator) {
+void* _arena_alloc_impl(u64 size, u64 align, Allocator* allocator) {
 	saneMemory->module.calls++;
 	if (!allocator || !allocator->context.arena.buffer) return NULL;	// error: null ptr!
 
@@ -128,7 +128,7 @@ void* _arena_alloc_impl(u64 size, u64 align, SaneAllocator* allocator) {
 
 
 /* -------------------- GENERICS ------------------ */
-byte _blob_alloc_impl(u64 align, SaneBlob* blob) {
+byte _blob_alloc_impl(u64 align, Blob* blob) {
 	saneMemory->module.calls++;
 	if (!blob || !SSDK_IP2(align) || !blob->size) {
 		blob->size = 0;
@@ -144,7 +144,7 @@ byte _blob_alloc_impl(u64 align, SaneBlob* blob) {
 	return SSDK_TRUE;
 }
 
-byte _blob_realloc_impl(u64 size, u64 align, SaneBlob* blob) {
+byte _blob_realloc_impl(u64 size, u64 align, Blob* blob) {
 	saneMemory->module.calls++;
 	if (!blob || !blob->data || !size || size > INT_MAX || !SSDK_IP2(align)) return SSDK_FALSE;	// error: null ptr/value error!
 
@@ -157,7 +157,7 @@ byte _blob_realloc_impl(u64 size, u64 align, SaneBlob* blob) {
 	return SSDK_TRUE;
 }
 
-byte _blob_dealloc_impl(SaneBlob* blob) {
+byte _blob_dealloc_impl(Blob* blob) {
 	saneMemory->module.calls++;
 	if (!blob || !blob->data || !blob->size) return SSDK_FALSE;	// error: null ptr/value error!
 	saneMemory->dealloc(blob->data);
@@ -180,14 +180,14 @@ byte ssdkInitMemory(none) {
 	saneMemory->dealloc = _dealloc_impl;
 	saneMemory->realloc = _realloc_impl;
 
-	saneMemory->blob_alloc = _blob_alloc_impl;
-	saneMemory->blob_realloc = _blob_realloc_impl;
-	saneMemory->blob_dealloc = _blob_dealloc_impl;
+	saneMemory->blobAlloc = _blob_alloc_impl;
+	saneMemory->blobRealloc = _blob_realloc_impl;
+	saneMemory->blobDealloc = _blob_dealloc_impl;
 	
-	saneMemory->create_allocator = _create_allocator_impl;
-	saneMemory->arena_alloc = _arena_alloc_impl;
-	saneMemory->arena_reset = _arena_reset_impl;
-	saneMemory->destroy_allocator = _destroy_allocator_impl;
+	saneMemory->createAllocator = _create_allocator_impl;
+	saneMemory->arenaAlloc = _arena_alloc_impl;
+	saneMemory->arenaReset = _arena_reset_impl;
+	saneMemory->destroyAllocator = _destroy_allocator_impl;
 	
 	saneMemory->module.mask = 0;
     saneMemory->module.calls = 0;

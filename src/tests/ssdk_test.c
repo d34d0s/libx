@@ -28,7 +28,7 @@ int main() {
         if (ssdkInitDS()) {
             ssdkModuleDump(&saneDS->module);
             
-            SaneHashArray harr;
+            HashArray harr;
             saneDS->hashArray.create(16, &harr);
             saneDS->hashArray.put("Key1", &(u32){420}, &harr);
 

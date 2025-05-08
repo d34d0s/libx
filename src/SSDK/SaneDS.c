@@ -97,8 +97,8 @@ none _destroyArrayImpl_(ptr array) {
     saneMemory->dealloc((ptr)((byte*)array - ARRAY_HEAD_SIZE));
 }
 
-SaneArrayHeader _getHeaderImpl_(ptr array) {
-    SaneArrayHeader arrhead = {0, 0, 0, 0};
+ArrayHeader _getHeaderImpl_(ptr array) {
+    ArrayHeader arrhead = {0, 0, 0, 0};
     if (!array) return arrhead; // error: null ptr!
 
     u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
@@ -120,12 +120,12 @@ none _setArrayHeadImpl_(ptr array, u32 field, u32 value) {
 
 
 /* ---------------- LINKED ARRAY ---------------- */
-none _createLinkedArrayImpl_(u32 stride, u32 max, SaneLinkedArray* array) {
+none _createLinkedArrayImpl_(u32 stride, u32 max, LinkedArray* array) {
     if (!array) return;  // error: null ptr!
     if (!stride || !max) return;   // error: value error!
 
     if (array->array != NULL) {
-        array->next = saneMemory->alloc(sizeof(SaneLinkedArray), 8);
+        array->next = saneMemory->alloc(sizeof(LinkedArray), 8);
         if (!array->next) return;  // error: out of memory!
     
         array->next->array = saneDS->array.create(stride, max);
@@ -146,7 +146,7 @@ none _createLinkedArrayImpl_(u32 stride, u32 max, SaneLinkedArray* array) {
     }
 }
 
-none _destroyLinkedArrayImpl_(SaneLinkedArray* array) {
+none _destroyLinkedArrayImpl_(LinkedArray* array) {
     if (!array) return; // error: null ptr!
     
     if (array->next) array->next->last = array->last;
@@ -155,25 +155,25 @@ none _destroyLinkedArrayImpl_(SaneLinkedArray* array) {
     saneDS->array.destroy(array->array);
     saneMemory->dealloc(array);
     
-    array->meta = (SaneArrayHeader){0};
+    array->meta = (ArrayHeader){0};
     array->array = NULL;
     array->last = NULL;
     array->next = NULL;
 }
 
-none _collapseLinkedArrayImpl_(SaneLinkedArray* array) {
+none _collapseLinkedArrayImpl_(LinkedArray* array) {
     if (!array) return; // error: null ptr!
     
-    SaneLinkedArray* next = array->next;
+    LinkedArray* next = array->next;
     while (next) {
-        SaneLinkedArray* temp = next->next;
+        LinkedArray* temp = next->next;
         saneDS->array.destroy(next);
         next = temp;
     }
 
-	SaneLinkedArray* last = array->last;
+	LinkedArray* last = array->last;
     while (last) {
-        SaneLinkedArray* temp = last->last;
+        LinkedArray* temp = last->last;
         saneDS->array.destroy(last);
         last = temp;
     }
@@ -193,10 +193,10 @@ i32 _fnv1aHash_(cstr string) {
     }; return hash;
 }
 
-i32 _probeKeyHashArray_(cstr key, SaneHashArray* array) {
+i32 _probeKeyHashArray_(cstr key, HashArray* array) {
     if (!array || !key) return -1;
 
-    SaneArrayHeader meta = saneDS->array.getHeader(array->map);
+    ArrayHeader meta = saneDS->array.getHeader(array->map);
 
     u32 index = _fnv1aHash_(key) % meta.max;
     u32 start = index;
@@ -210,10 +210,10 @@ i32 _probeKeyHashArray_(cstr key, SaneHashArray* array) {
     return index;
 }
 
-i32 _probeSlotHashArray_(cstr key, SaneHashArray* array) {
+i32 _probeSlotHashArray_(cstr key, HashArray* array) {
     if (!array || !key) return -1;
     
-    SaneArrayHeader meta = saneDS->array.getHeader(array->map);
+    ArrayHeader meta = saneDS->array.getHeader(array->map);
     
     i32 index = _fnv1aHash_(key) % meta.max;
     i32 start = index;
@@ -228,17 +228,17 @@ i32 _probeSlotHashArray_(cstr key, SaneHashArray* array) {
     return index;
 }
 
-none _createHashArrayImpl_(u32 max, SaneHashArray* array) {
+none _createHashArrayImpl_(u32 max, HashArray* array) {
     if (!array) return;  // error: out of memory!
 
-    array->map = (SaneKeyValue*)saneDS->array.create(sizeof(SaneKeyValue), max);
+    array->map = (KeyValue*)saneDS->array.create(sizeof(KeyValue), max);
     if (!array->map) {
         saneMemory->dealloc(array);
         return; // error: out of memory!
     }
 
     SSDK_FORI(0, max, 1) {
-        array->map[i] = (SaneKeyValue){
+        array->map[i] = (KeyValue){
             .value = NULL,
             .key = NULL
         };
@@ -247,12 +247,12 @@ none _createHashArrayImpl_(u32 max, SaneHashArray* array) {
     array->meta = saneDS->array.getHeader(array->map);
 }
 
-byte _putHashArrayImpl_(cstr key, ptr value, SaneHashArray* array) {
+byte _putHashArrayImpl_(cstr key, ptr value, HashArray* array) {
     if (!array || !key || !value) return SSDK_FALSE;  // error: null ptr!
 
-    SaneArrayHeader meta = saneDS->array.getHeader(array->map);
+    ArrayHeader meta = saneDS->array.getHeader(array->map);
     if (meta.count > (u32)(meta.max * 0.7)) {
-        SaneKeyValue* temp = (SaneKeyValue*)saneDS->array.create(sizeof(SaneKeyValue), meta.max * 2);
+        KeyValue* temp = (KeyValue*)saneDS->array.create(sizeof(KeyValue), meta.max * 2);
         if (!temp) return SSDK_FALSE;  // error: out of memory!
 
         ((u32*)((byte*)temp - ARRAY_HEAD_SIZE))[ARRAY_COUNT_FIELD] = meta.count;
@@ -268,14 +268,14 @@ byte _putHashArrayImpl_(cstr key, ptr value, SaneHashArray* array) {
     if (array->map[index].key && strcmp(array->map[index].key, key) == 0) {
         array->map[index].value = value;
     } else {
-        saneDS->array.put(array->map, index, &(SaneKeyValue){ .value = value, .key = strdup(key)});
+        saneDS->array.put(array->map, index, &(KeyValue){ .value = value, .key = strdup(key)});
     }
     
     array->meta = saneDS->array.getHeader(array->map);
     return SSDK_TRUE;
 }
 
-ptr _getHashArrayImpl_(cstr key, SaneHashArray* array) {
+ptr _getHashArrayImpl_(cstr key, HashArray* array) {
     if (!array || !key) return NULL;  // error: null ptr!
     
     i32 index = _probeKeyHashArray_(key, array);
@@ -284,7 +284,7 @@ ptr _getHashArrayImpl_(cstr key, SaneHashArray* array) {
     return array->map[index].value;
 }
 
-byte _pullHashArrayImpl_(cstr key, SaneKeyValue* out, SaneHashArray* array) {
+byte _pullHashArrayImpl_(cstr key, KeyValue* out, HashArray* array) {
     if (!array || !key) return SSDK_FALSE;  // error: null ptr!
 
     i32 index = _probeKeyHashArray_(key, array);
@@ -295,13 +295,13 @@ byte _pullHashArrayImpl_(cstr key, SaneKeyValue* out, SaneHashArray* array) {
     return SSDK_TRUE;
 }
 
-none _destroyHashArrayImpl_(SaneHashArray* array) {
+none _destroyHashArrayImpl_(HashArray* array) {
     if (!array) return;   // error: null ptr!
     saneDS->array.destroy(array->map);
     saneMemory->dealloc(array);
 }
 
-cstr* _getHashArrayKeysImpl_(SaneHashArray* array) {
+cstr* _getHashArrayKeysImpl_(HashArray* array) {
     u8 key = 0;
 	
     cstr* keys = saneDS->array.create(sizeof(cstr), array->meta.count);
@@ -315,7 +315,7 @@ cstr* _getHashArrayKeysImpl_(SaneHashArray* array) {
     return keys;
 }
 
-ptr* _getHashArrayValuesImpl_(SaneHashArray* array) {
+ptr* _getHashArrayValuesImpl_(HashArray* array) {
     u8 value = 0;
 	
     ptr* values = saneDS->array.create(sizeof(ptr), array->meta.count);
