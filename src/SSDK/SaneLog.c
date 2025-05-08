@@ -2,15 +2,17 @@
 
 SaneLog* saneLog = NULL;
 
-str tags[5] = {
+str tags[6] = {
     "[LOG]",
+    "[LOG-DUMP]",
     "[LOG-INFO]",
     "[LOG-WARN]",
     "[LOG-SUCCESS]",
     "[LOG-ERROR]"
 };
-str colors[5] = {
+str colors[6] = {
     "\033[0m",
+    "\033[95m",
     "\033[94m",
     "\033[93m",
     "\033[92m",
@@ -18,12 +20,12 @@ str colors[5] = {
 };
 
 
-void _log_impl(u8 level, cstr msg) {
+void _logImpl(u8 level, cstr msg) {
     saneLog->module.calls++;
     printf("%s%s %s%s\n", colors[level], tags[level], colors[0], msg);
 }
 
-void _logFmt_impl(u8 level, cstr msg, ...) {
+void _logFmtImpl(u8 level, cstr msg, ...) {
     saneLog->module.calls++;
 
     char buffer[1024];
@@ -36,6 +38,12 @@ void _logFmt_impl(u8 level, cstr msg, ...) {
     saneLog->log(level, buffer);
 }
 
+none _logModuleImpl(SaneModule* module) {
+    saneLog->logFmt(SANE_LOG_DUMP, "[Module] %s\t(bytes=%llu, calls=%llu)",
+        module->name, module->size, module->calls
+    );
+}
+
 /* ---------------- API ---------------- */
 byte ssdkInitLog(none) {
     if (saneLog != NULL) return SSDK_TRUE;
@@ -43,8 +51,9 @@ byte ssdkInitLog(none) {
     saneLog = malloc(sizeof(SaneLog));
     if (!saneLog) return SSDK_FALSE;  // error: out of memory!
 
-    saneLog->log = _log_impl;
-    saneLog->logFmt = _logFmt_impl;
+    saneLog->log = _logImpl;
+    saneLog->logFmt = _logFmtImpl;
+    saneLog->logModule = _logModuleImpl;
     
     saneLog->module.mask = 0;
     saneLog->module.calls = 0;

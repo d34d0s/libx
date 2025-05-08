@@ -5,7 +5,7 @@ SaneData* saneData = NULL;
 /* ---------------- ARRAY ---------------- */
 #define ARRAY_HEAD_SIZE (sizeof(u32) * 4)
 
-ptr _createArrayImpl_(u32 stride, u32 max) {
+ptr _createArrayImpl(u32 stride, u32 max) {
     u32* head = (u32*)saneMemory->alloc(ARRAY_HEAD_SIZE + (stride * max), 8);
     if (!head) return NULL; // error: out of memory!
 
@@ -17,7 +17,7 @@ ptr _createArrayImpl_(u32 stride, u32 max) {
     return (ptr)((byte*)head + ARRAY_HEAD_SIZE);
 }
 
-none _putArrayImpl_(ptr array, u32 index, ptr invalue) {
+none _putArrayImpl(ptr array, u32 index, ptr invalue) {
     if (!array || !invalue || index < 0) return;
 	
     u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
@@ -31,7 +31,7 @@ none _putArrayImpl_(ptr array, u32 index, ptr invalue) {
     head[ARRAY_COUNT_FIELD]++;
 }
 
-none _pullArrayImpl_(ptr array, u32 index, ptr outvalue) {
+none _pullArrayImpl(ptr array, u32 index, ptr outvalue) {
     if (!array || outvalue == NULL) return;
 	
     u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
@@ -53,7 +53,7 @@ none _pullArrayImpl_(ptr array, u32 index, ptr outvalue) {
     head[ARRAY_COUNT_FIELD]--;
 }
 
-none _pushArrayImpl_(ptr array, ptr invalue) {
+none _pushArrayImpl(ptr array, ptr invalue) {
     if (!array || !invalue) return;
 	
 	u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
@@ -62,7 +62,7 @@ none _pushArrayImpl_(ptr array, ptr invalue) {
     saneData->array.put(array, index, invalue);
 }
 
-none _popArrayImpl_(ptr array, ptr outvalue) {
+none _popArrayImpl(ptr array, ptr outvalue) {
     if (!array || outvalue == NULL) return;
 	
 	u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
@@ -73,7 +73,7 @@ none _popArrayImpl_(ptr array, ptr outvalue) {
     saneData->array.pull(array, index, outvalue);
 }
 
-ptr _resizeArrayImpl_(ptr array, u32 max) {
+ptr _resizeArrayImpl(ptr array, u32 max) {
     if (!array || !max) return NULL;
     
 	u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
@@ -93,11 +93,11 @@ ptr _resizeArrayImpl_(ptr array, u32 max) {
     return (ptr)((byte*)newhead + ARRAY_HEAD_SIZE);
 }
 
-none _destroyArrayImpl_(ptr array) {
+none _destroyArrayImpl(ptr array) {
     saneMemory->dealloc((ptr)((byte*)array - ARRAY_HEAD_SIZE));
 }
 
-ArrayHeader _getHeaderImpl_(ptr array) {
+ArrayHeader _getHeaderImpl(ptr array) {
     ArrayHeader arrhead = {0, 0, 0, 0};
     if (!array) return arrhead; // error: null ptr!
 
@@ -111,7 +111,7 @@ ArrayHeader _getHeaderImpl_(ptr array) {
     return arrhead;
 }
 
-none _setArrayHeadImpl_(ptr array, u32 field, u32 value) {
+none _setArrayHeadImpl(ptr array, u32 field, u32 value) {
     if (!array || field >= ARRAY_FIELDS) return;
     u32* head = (u32*)((byte*)array - ARRAY_HEAD_SIZE);
     head[field] = value;
@@ -120,7 +120,7 @@ none _setArrayHeadImpl_(ptr array, u32 field, u32 value) {
 
 
 /* ---------------- LINKED ARRAY ---------------- */
-none _createLinkedArrayImpl_(u32 stride, u32 max, LinkedArray* array) {
+none _createLinkedArrayImpl(u32 stride, u32 max, LinkedArray* array) {
     if (!array) return;  // error: null ptr!
     if (!stride || !max) return;   // error: value error!
 
@@ -146,14 +146,13 @@ none _createLinkedArrayImpl_(u32 stride, u32 max, LinkedArray* array) {
     }
 }
 
-none _destroyLinkedArrayImpl_(LinkedArray* array) {
+none _destroyLinkedArrayImpl(LinkedArray* array) {
     if (!array) return; // error: null ptr!
     
     if (array->next) array->next->last = array->last;
     if (array->last) array->last->next = array->next;
     
     saneData->array.destroy(array->array);
-    saneMemory->dealloc(array);
     
     array->meta = (ArrayHeader){0};
     array->array = NULL;
@@ -161,7 +160,7 @@ none _destroyLinkedArrayImpl_(LinkedArray* array) {
     array->next = NULL;
 }
 
-none _collapseLinkedArrayImpl_(LinkedArray* array) {
+none _collapseLinkedArrayImpl(LinkedArray* array) {
     if (!array) return; // error: null ptr!
     
     LinkedArray* next = array->next;
@@ -228,12 +227,11 @@ i32 _probeSlotHashArray_(cstr key, HashArray* array) {
     return index;
 }
 
-none _createHashArrayImpl_(u32 max, HashArray* array) {
+none _createHashArrayImpl(u32 max, HashArray* array) {
     if (!array) return;  // error: out of memory!
 
     array->map = (KeyValue*)saneData->array.create(sizeof(KeyValue), max);
     if (!array->map) {
-        saneMemory->dealloc(array);
         return; // error: out of memory!
     }
 
@@ -247,7 +245,7 @@ none _createHashArrayImpl_(u32 max, HashArray* array) {
     array->meta = saneData->array.getHeader(array->map);
 }
 
-byte _putHashArrayImpl_(cstr key, ptr value, HashArray* array) {
+byte _putHashArrayImpl(cstr key, ptr value, HashArray* array) {
     if (!array || !key || !value) return SSDK_FALSE;  // error: null ptr!
 
     ArrayHeader meta = saneData->array.getHeader(array->map);
@@ -275,7 +273,7 @@ byte _putHashArrayImpl_(cstr key, ptr value, HashArray* array) {
     return SSDK_TRUE;
 }
 
-ptr _getHashArrayImpl_(cstr key, HashArray* array) {
+ptr _getHashArrayImpl(cstr key, HashArray* array) {
     if (!array || !key) return NULL;  // error: null ptr!
     
     i32 index = _probeKeyHashArray_(key, array);
@@ -284,24 +282,24 @@ ptr _getHashArrayImpl_(cstr key, HashArray* array) {
     return array->map[index].value;
 }
 
-byte _pullHashArrayImpl_(cstr key, KeyValue* out, HashArray* array) {
-    if (!array || !key) return SSDK_FALSE;  // error: null ptr!
+byte _pullHashArrayImpl(cstr key, KeyValue* out, HashArray* array) {
+    if (!array || !array->map || !out || !key) return SSDK_FALSE;  // error: null ptr!
 
     i32 index = _probeKeyHashArray_(key, array);
     if (index == -1) return SSDK_FALSE;
-
+    
     saneData->array.pull(array->map, index, out);
+    
     array->meta = saneData->array.getHeader(array->map);
     return SSDK_TRUE;
 }
 
-none _destroyHashArrayImpl_(HashArray* array) {
+none _destroyHashArrayImpl(HashArray* array) {
     if (!array) return;   // error: null ptr!
     saneData->array.destroy(array->map);
-    saneMemory->dealloc(array);
 }
 
-cstr* _getHashArrayKeysImpl_(HashArray* array) {
+cstr* _getHashArrayKeysImpl(HashArray* array) {
     u8 key = 0;
 	
     cstr* keys = saneData->array.create(sizeof(cstr), array->meta.count);
@@ -315,7 +313,7 @@ cstr* _getHashArrayKeysImpl_(HashArray* array) {
     return keys;
 }
 
-ptr* _getHashArrayValuesImpl_(HashArray* array) {
+ptr* _getHashArrayValuesImpl(HashArray* array) {
     u8 value = 0;
 	
     ptr* values = saneData->array.create(sizeof(ptr), array->meta.count);
@@ -345,28 +343,28 @@ byte ssdkInitDS(none) {
     saneData = malloc(sizeof(SaneData));
     if (saneData == NULL) return SSDK_FALSE;  // error: out of memory!
 
-    saneData->array.create = _createArrayImpl_;
-    saneData->array.pop = _popArrayImpl_;
-    saneData->array.put = _putArrayImpl_;
-    saneData->array.push = _pushArrayImpl_;
-    saneData->array.pull = _pullArrayImpl_;
-    saneData->array.resize = _resizeArrayImpl_;
-    saneData->array.destroy = _destroyArrayImpl_;
-    saneData->array.getHeader = _getHeaderImpl_;
+    saneData->array.create = _createArrayImpl;
+    saneData->array.pop = _popArrayImpl;
+    saneData->array.put = _putArrayImpl;
+    saneData->array.push = _pushArrayImpl;
+    saneData->array.pull = _pullArrayImpl;
+    saneData->array.resize = _resizeArrayImpl;
+    saneData->array.destroy = _destroyArrayImpl;
+    saneData->array.getHeader = _getHeaderImpl;
 
-    saneData->linkedArray.create = _createLinkedArrayImpl_;
-    saneData->linkedArray.destroy = _destroyLinkedArrayImpl_;
-    saneData->linkedArray.collapse = _collapseLinkedArrayImpl_;
+    saneData->linkedArray.create = _createLinkedArrayImpl;
+    saneData->linkedArray.destroy = _destroyLinkedArrayImpl;
+    saneData->linkedArray.collapse = _collapseLinkedArrayImpl;
 
-    saneData->hashArray.create = _createHashArrayImpl_;
-    saneData->hashArray.destroy = _destroyHashArrayImpl_;
+    saneData->hashArray.create = _createHashArrayImpl;
+    saneData->hashArray.destroy = _destroyHashArrayImpl;
     
-    saneData->hashArray.put = _putHashArrayImpl_;
-    saneData->hashArray.pull = _pullHashArrayImpl_;
+    saneData->hashArray.put = _putHashArrayImpl;
+    saneData->hashArray.pull = _pullHashArrayImpl;
     
-    saneData->hashArray.get = _getHashArrayImpl_;
-    saneData->hashArray.getKeys = _getHashArrayKeysImpl_;
-    saneData->hashArray.getValues = _getHashArrayValuesImpl_;
+    saneData->hashArray.get = _getHashArrayImpl;
+    saneData->hashArray.getKeys = _getHashArrayKeysImpl;
+    saneData->hashArray.getValues = _getHashArrayValuesImpl;
     
     saneData->module.mask = 0;
     saneData->module.calls = 0;
