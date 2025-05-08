@@ -1,9 +1,11 @@
-#ifndef __COREX_FILEX_H__
-#define __COREX_FILEX_H__
+#ifndef __SANEFIO_H__
+#define __SANEFIO_H__
 
-#include <corex/corex_def.h>
+#include <include/SSDK/globals.h>
 
-typedef struct Filex {
+typedef struct SaneFile {
+    SaneModule module;
+    
     byte (*exists)(cstr path);
     u64 (*size)(cstr path);
     byte (*remove)(cstr path);
@@ -16,10 +18,10 @@ typedef struct Filex {
     byte (*writeb)(cstr path, u64 size, byte preserve, void* ptr);
     byte (*appendb)(cstr path, u64 size, byte newline, void* ptr);
     byte (*process)(cstr path, u64 lines, void (*callback)(cstr line));
-    byte init;
-} Filex;
+} SaneFile;
+extern SaneFile* saneFile;
 
-byte _corex_init_filex(void);
-void _corex_cleanup_filex(void);
+SSDK_FUNC byte ssdkInitFile(none);
+SSDK_FUNC none ssdkExitFile(none);
 
-#endif  // COREX_FILEX_H
+#endif  // __SANEFIO_H__

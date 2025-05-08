@@ -1,5 +1,7 @@
 *.bin
+corex/
 build/
+tests1/
 .vscode/
 release/
 releases/

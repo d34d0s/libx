@@ -1,4 +1,3 @@
-from _monolith import gen_monolith
 import os, json, shutil, subprocess
 
 SEP = os.sep
@@ -7,23 +6,22 @@ CALL_DIR = os.getcwd()
 RELEASE_VER = None
 
 README = """
-corex is a cross-platform, data-oriented game engine written in pure C,
-designed to make the development and distribution of games and media simpler.
+Sane Software Development Kit. A modular, lightweight runtime library
 
 You can find the latest release and additional information at:
-https://github.com/r3shape/corex
+https://github.com/r3shape/SSDK
 
 This library is distributed under the terms of the MIT license,
 available in [LICENSE.txt](LICENSE.txt).
 
 # Using this package
-This package contains the `corex` engine built for x64 Windows.
+This package contains the `SSDK` dynamic library built for x64 Windows.
 
-To use this package, simply replace an existing 64-bit corex.dll with the one included here.
+To use this package, simply replace an existing 64-bit SSDK.dll with the one included here.
 
 # Development packages
 If you're looking for packages containing headers and static archives, check for this package:
--  corex-dev-2025.0.1-mingw-w64.zip (for development using mingw-w64)
+-  SSDK-dev-2025.0.1-mingw-w64.zip (compiled using mingw-w64)
 
 Happy Coding!
 
@@ -71,49 +69,57 @@ def fetch_files_multi(exts: list[str], directory: str) -> list:
         matched += fetch_files(ext, directory)
     return matched
 
+def gen_package(dir: str, dev: bool=False):
+    dll_path = os.path.join("build", f"SSDK.dll")
+
+    if not os.path.exists(dll_path):
+        print("[-] Missing DLL build artifact:", dll_path)
+        return
+    
+    build_dir = os.path.join(dir, "build")
+    
+    os.makedirs(build_dir, exist_ok=True)
+
+    shutil.copyfile(dll_path, os.path.join(build_dir, f"SSDK.dll"))
+
+    if dev:
+        inc_dir = os.path.join(dir, os_path("include/SSDK"))
+        os.makedirs(inc_dir, exist_ok=True)
+        # Copy public headers
+        for root, _, files in os.walk(os_path("include/SSDK")):
+            for f in files:
+                if f.endswith(".h"):
+                    src = os.path.join(root, f)
+                    rel = os.path.relpath(root, os_path("include/SSDK"))
+                    dst_folder = os.path.join(inc_dir, rel)
+                    os.makedirs(dst_folder, exist_ok=True)
+                    shutil.copyfile(src, os.path.join(dst_folder, f))
+
+    with open(os.path.join(dir, "README.md"), "w") as f:
+        f.write(README.strip())
+
+    with open(os.path.join(dir, "LICENSE.txt"), "w") as f:
+        f.write(LICENSE.strip())
+
+    with open(os.path.join(dir, "manifest.json"), "w") as mf:
+        json.dump({
+        "name": "SSDK",
+        "version": RELEASE_VER,
+        "type": "dll",
+        "platform": "mingw-w64",
+        "files": os.listdir(dir)
+        }, mf, indent=4)
+
 def gen_release() -> None:
     print("[*] Generating release...")
 
-    # Navigate to r3make directory
-    r3make_path = None
-    for root, _, files in os.walk(CWD):
-        if "r3make" in files:
-            r3make_path = os.path.join(root, "r3make")
-            os.chdir(root)
-            break
-
-    if not r3make_path:
-        print("[-] Error: r3make not found.")
-        return
-
-    with open("r3make", "r") as f:
-        config = json.load(f)
-
-    try:
-        artifact = config["c-targets"]["corex"]
-        out_dir = os_path(artifact["out-dir"])
-        out_name = artifact["out-name"]
-        out_type = artifact["out-type"]
-    except KeyError as e:
-        print(f"[-] Error in r3make config: missing {e}")
-        return
-
     # Build DLL first
-    config["c-targets"]["corex"]["out-type"] = "dll"
-    with open("r3make", "w") as f:
-        json.dump(config, f, indent=4)
-    subprocess.call(["r3make", "corex"])
-
-    # Then build static lib
-    config["c-targets"]["corex"]["out-type"] = "lib"
-    with open("r3make", "w") as f:
-        json.dump(config, f, indent=4)
-    subprocess.call(["r3make", "corex"])
+    subprocess.call(["r3make", "-nf", "-v", "-t", "main"])
 
     # Get version from version file
     version_path = None
     for root, dirs, files in os.walk(CALL_DIR):
-        if root.endswith(os_path("corex")) and "version" in files:
+        if root.endswith("SSDK") and "version" in files:
             version_path = os.path.join(root, "version")
             break
 
@@ -125,89 +131,23 @@ def gen_release() -> None:
         RELEASE_VER = f.read().strip()
 
     release_base = os_path(f"{CALL_DIR}/release")
-    std_dir = os_path(f"{release_base}/corex-{RELEASE_VER}-mingw-w64")
-    dev_dir = os_path(f"{release_base}/corex-{RELEASE_VER}-dev-mingw-w64")
+    std_dir = os_path(f"{release_base}/SSDK-{RELEASE_VER}-mingw-w64")
+    dev_dir = os_path(f"{release_base}/SSDK-{RELEASE_VER}-dev-mingw-w64")
 
     os.makedirs(std_dir, exist_ok=True)
     os.makedirs(dev_dir, exist_ok=True)
 
-    dll_path = os.path.join(out_dir, f"{out_name}.dll")
-    lib_path = os.path.join(out_dir, f"{out_name}.lib")
-
-    if not os.path.exists(dll_path):
-        print("[-] Missing DLL build artifact:", dll_path)
-        return
-    if not os.path.exists(lib_path):
-        print("[-] Missing LIB build artifact:", lib_path)
-        return
-
     # === Std release ===
     print("[+] Creating standard release...")
-    shutil.copyfile(dll_path, os.path.join(std_dir, f"{out_name}.dll"))
-
-    with open(os.path.join(std_dir, "README.md"), "w") as f:
-        f.write(README.strip())
-
-    with open(os.path.join(std_dir, "LICENSE.txt"), "w") as f:
-        f.write(LICENSE.strip())
-
-    with open(os.path.join(std_dir, "manifest.json"), "w") as mf:
-        json.dump({
-        "name": out_name,
-        "version": RELEASE_VER,
-        "type": out_type,
-        "platform": "mingw-w64",
-        "files": os.listdir(std_dir)
-        }, mf, indent=4)
+    gen_package(std_dir)
     
     # === Dev release ===
     print("[+] Creating dev release...")
-    build_dir = os.path.join(dev_dir, "build")
-    inc_dir = os.path.join(dev_dir, "corex")
-
-    os.makedirs(build_dir, exist_ok=True)
-    os.makedirs(inc_dir, exist_ok=True)
-
-    # Copy DLL + lib
-    shutil.copyfile(dll_path, os.path.join(build_dir, f"{out_name}.dll"))
-    shutil.copyfile(lib_path, os.path.join(build_dir, f"{out_name}.lib"))
-
-    # Copy public headers
-    for root, _, files in os.walk(os_path("corex")):
-        for f in files:
-            if f.endswith(".h"):
-                src = os.path.join(root, f)
-                rel = os.path.relpath(root, os_path("corex"))
-                dst_folder = os.path.join(inc_dir, rel)
-                os.makedirs(dst_folder, exist_ok=True)
-                shutil.copyfile(src, os.path.join(dst_folder, f))
-
-    with open(os.path.join(dev_dir, "README.md"), "w") as f:
-        f.write(README.strip())
-
-    with open(os.path.join(dev_dir, "LICENSE.txt"), "w") as f:
-        f.write(LICENSE.strip())
-
-    with open(os.path.join(dev_dir, "manifest.json"), "w") as mf:
-        json.dump({
-        "name": out_name,
-        "version": RELEASE_VER,
-        "type": out_type,
-        "platform": "mingw-w64",
-        "files": os.listdir(dev_dir)
-        }, mf, indent=4)
+    gen_package(dev_dir, 1)
+    
 
     print(f"[✓] Std release generated at: {std_dir}")
     print(f"[✓] Dev release generated at: {dev_dir}")
-
-    # Generate stb-style monolithic header
-    if not os.path.exists(f"{std_dir}{SEP}include"):
-        os.mkdir(f"{std_dir}{SEP}include")
-    gen_monolith(f"{std_dir}{SEP}include")
-
-    if not os.path.exists(f"{dev_dir}{SEP}include"):
-        os.mkdir(f"{dev_dir}{SEP}include")
-    gen_monolith(f"{dev_dir}{SEP}include")
 
 if __name__ == "__main__":
     gen_release()
