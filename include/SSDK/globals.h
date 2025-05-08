@@ -1,5 +1,5 @@
-#ifndef __GLOBALS_H__
-#define __GLOBALS_H__
+#ifndef __SANEGLOBALS_H__
+#define __SANEGLOBALS_H__
 
 #include <include/SSDK/defines.h>
 
@@ -10,4 +10,4 @@ typedef struct SaneModule {
     u8 mask;
 } SaneModule;
 
-#endif  // __GLOBALS_H__
+#endif  // __SANEGLOBALS_H__

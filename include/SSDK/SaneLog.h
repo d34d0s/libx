@@ -14,7 +14,8 @@ typedef enum SaneLogLevel {
 
 typedef struct SaneLog {
     SaneModule module;
-    SSDK_FNPTR(none, log, u8 level, str msg);
+    SSDK_FNPTR(none, log, u8 level, cstr msg);
+    SSDK_FNPTR(none, logFmt, u8 level, cstr msg, ...);
 } SaneLog;
 extern SaneLog* saneLog;
 

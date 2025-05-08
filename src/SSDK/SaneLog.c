@@ -18,9 +18,22 @@ str colors[5] = {
 };
 
 
-void _log_impl(u8 level, str msg) {
+void _log_impl(u8 level, cstr msg) {
     saneLog->module.calls++;
     printf("%s%s %s%s\n", colors[level], tags[level], colors[0], msg);
+}
+
+void _logFmt_impl(u8 level, cstr msg, ...) {
+    saneLog->module.calls++;
+
+    char buffer[1024];
+
+    va_list args;
+    va_start(args, msg);
+    vsnprintf(buffer, 1024, msg, args);
+    va_end(args);
+
+    saneLog->log(level, buffer);
 }
 
 /* ---------------- API ---------------- */
@@ -31,6 +44,7 @@ byte ssdkInitLog(none) {
     if (!saneLog) return SSDK_FALSE;  // error: out of memory!
 
     saneLog->log = _log_impl;
+    saneLog->logFmt = _logFmt_impl;
     
     saneLog->module.mask = 0;
     saneLog->module.calls = 0;

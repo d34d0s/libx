@@ -70,9 +70,9 @@ typedef struct SaneDS {
         SSDK_FNPTR(byte, put, cstr key, ptr value, SaneHashArray* array);
         SSDK_FNPTR(byte, pull, cstr key, SaneKeyValue* out, SaneHashArray* array);
         
-        SSDK_FNPTR(ptr, get, cstr key, SaneHashArray* array);
         SSDK_FNPTR(cstr*, getKeys, SaneHashArray* array);
         SSDK_FNPTR(ptr*, getValues, SaneHashArray* array);
+        SSDK_FNPTR(ptr, get, cstr key, SaneHashArray* array);
     } hashArray;
 
 } SaneDS;

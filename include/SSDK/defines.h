@@ -1,5 +1,5 @@
-#ifndef __DEFINES_H__
-#define __DEFINES_H__
+#ifndef __SANEDEFINES_H__
+#define __SANEDEFINES_H__
 
 #ifndef SSDK_NO_STDLIB
 #include <stdio.h>
@@ -12,9 +12,8 @@
 typedef char*               str;
 typedef const char*         cstr;
 
-typedef char                byte;
-typedef signed char         s8, sbyte;
-typedef unsigned char       u8, ubyte;
+typedef signed char         i8, sbyte;
+typedef unsigned char       u8, ubyte, byte;
 
 typedef float               f32;
 typedef double              f64;
@@ -32,6 +31,8 @@ typedef void                none;
 
 #define SSDK_TRUE   1
 #define SSDK_FALSE  0
+
+#define SSDK_PI 3.14159265358979323846
 
 #define SSDK_SWAP(t, a, b) { t temp = a; (a) = (b); (b) = temp; }
 
@@ -87,4 +88,4 @@ typedef void                none;
     #endif
 #endif
 
-#endif  // __DEFINES_H__
+#endif  // __SANEDEFINES_H__
