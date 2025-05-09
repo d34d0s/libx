@@ -1,16 +1,29 @@
-# ![alt text](https://private-user-images.githubusercontent.com/118138305/414014542-ac634f13-e084-4387-aded-4679eb048cac.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDQ0OTM2MTcsIm5iZiI6MTc0NDQ5MzMxNywicGF0aCI6Ii8xMTgxMzgzMDUvNDE0MDE0NTQyLWFjNjM0ZjEzLWUwODQtNDM4Ny1hZGVkLTQ2NzllYjA0OGNhYy5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwNDEyJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDQxMlQyMTI4MzdaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0xNWJjOWFmZjNmNThiMGNmZWJlNTA2ZTdkN2JlY2ZjYjI5MjI3NzgwZDRmYzI1ZDY3MWUxZDdhZDI5ZDcwYTg5JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.a3V0mJyNyS9I5txtUIdeZTDZr9is8euemHsPA-iGpW8) Corex 
+# ![alt text](https://github.com/r3shape/swarm/raw/main/koncept/assets/r3-sticker.png) Sane Software Development Kit 
+| **A modular, lightweight runtime library.**
 
-**Corex** is a modular, lightweight runtime library for C projects. It provides a suite of foundational APIs for memory management, data structures, generic utilities, entity-component systems, math operations, and file I/O.
 
-**Corex** is designed to be minimal, extensible, and easy to integrate—ideal for custom runtimes, low-level tools, and systems-level development.
+**SSDK** is designed to be minimal, extensible, and easy to integrate—ideal for custom runtimes, low-level tools, and systems-level development.
 
 ---
 ## Features
 
-- **Modular architecture** – Initialize only the APIs you need via configuration flags
-- **Drop-in compatible** – Includes a single-header version for fast integration
-- **Runtime metadata** – Track version, usage stats, and build information
+- **Modular architecture** – Initialize only the APIs you need
 - **No platform dependencies** – Fully self-contained, cross-platform C
+- **Runtime metadata** – Track module size, version, function calls, and usage stats
+
+---
+
+## API Overview
+| API     | Description                           |
+|---------|---------------------------------------|
+| `SaneMemory`  | Memory management and arenas          |
+| `SaneData`    | Core data structures (arrays, maps)   |
+| `SaneLog`     | Logging tools utilities               |
+| `SaneECS`     | Entity-Component-System runtime       |
+| `SaneMath`    | Math utilities (vectors, transforms)  |
+| `SaneFile`    | File I/O and stream management        |
+
+| <b>NOTE:</b> Each module is independently initialized and tracked via runtime metadata.
 
 ---
 
@@ -20,74 +33,69 @@
 
 | Release       | Contents                                                                 |
 |---------------|--------------------------------------------------------------------------|
-| `corex-dev`   | Full development version: headers, and prebuilt `.dll`/`.lib`    |
-| `corex`       | Standard release: single-header (`corex.h`) + prebuilt `.dll`            |
+| `SSDK-dev`   | Full development version: headers, and prebuilt `.dll`    |
+| `SSDK`       | Standard release: single-header (`SSDK.h`) + prebuilt `.dll`            |
 
-Both versions are available as `.zip` and `.tar` archives.
+| <b>NOTE:</b> Both versions are available as `.zip` and `.tar` archives.
 
 ---
 
-### 2. Integration
+### 2. Development Integration
 
-#### Option A: Drop-in Header
+Use the `SSDK-dev` release if you want access to all headers, and prebuilt binaries:
 
-The `corex` release includes a standalone `corex.h` and `corex.dll` that can be integrated directly into any project:
+- Add SSDK's `include` directory to your compiler's header search path
+- Link against the provided `.dll` build artifact.
+- Use `SSDK.h` to bootstrap the library and access the full API
 
+---
+
+### 3. Write Some Code
 ```c
-#include "corex.h"
+#include "SSDK.h"
 
 int main() {
-    libx_init(COREX_USE_MEMX | COREX_USE_GENX);
+  ssdkInitMemory();
+    ssdkInitData(); // dependent on SaneMemory
+    ssdkInitLog();
     // your code...
+    ssdkExitLog();
+    ssdkExitData();
+    ssdkExitMemory(); // must be exited after dependent modules
     return 0;
 }
 ```
-
-#### Option B: Development Integration
-
-Use the `corex-dev` release if you want access to all headers, and prebuilt binaries:
-
-- Add `corex/` to your compiler's header search path
-- Link against the provided `.lib` or `.dll` build artifact.
-- Use `corex.h` to bootstrap the library and access the full API
 
 ---
 
 ## Building From Source
 
-Use your preferred build system or a minimal setup:
+### Option 1: Use your preferred build system or a minimal setup:
 
 ```bash
-gcc -Iinclude -shared -o corex.dll src/*.c
+gcc -shared -o SSDK.dll src/SSDK/*.c
 ```
 
-Alternatively, using the provided configuration, the build process can be automated using [`r3make`](https://github.com/r3shape/r3make).
+### Option 2: The build process can be automated using [`r3make`](https://github.com/r3shape/r3make).
+
+```bash
+r3make -nf -v
+```
+| <b>NOTE:</b> This command builds the SSDK library
+
+```bash
+r3make -nf -v -be -r -t tests
+```
+| <b>NOTE:</b> This command builds, and runs the SSDK library tests
 
 ---
 
-## API Overview
+## SSDK Contributors
 
-Corex currently provides 6 APIs:
-
-| API     | Description                           |
-|---------|---------------------------------------|
-| `Memx`  | Memory management and arenas          |
-| `Dsx`   | Core data structures (arrays, maps)   |
-| `Genx`  | Generic tools and buffer utilities    |
-| `Ecsx`  | Entity-Component-System runtime       |
-| `Mathx` | Math utilities (vectors, transforms)  |
-| `Filex` | File I/O and stream management        |
-
-Each module is independently initialized and tracked via runtime metadata.
-
----
-
-## Corex Contributors
-
-<a href="https://github.com/r3shape/corex/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=r3shape/corex" />
+<a href="https://github.com/r3shape/SSDK/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=r3shape/SSDK" />
 </a>
 
 ## License
 
-Corex is released under the MIT License.
+SSDK is released under the MIT License.
