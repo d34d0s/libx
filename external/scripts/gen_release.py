@@ -21,7 +21,7 @@ To use this package, simply replace an existing 64-bit SSDK.dll with the one inc
 
 ### Development packages
 If you're looking for packages containing headers and static archives, check for this package:
--  SSDK-dev-VERSION-mingw-w64.zip
+-  SSDK-VERSION-dev-mingw-w64.zip
 
 Happy Coding!  
 Izaiyah Stokes (d34d0s.dev@gmail.com)
