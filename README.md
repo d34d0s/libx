@@ -34,7 +34,7 @@
 | Release       | Contents                                                                 |
 |---------------|--------------------------------------------------------------------------|
 | `SSDK-dev`   | Full development version: headers, and prebuilt `.dll`    |
-| `SSDK`       | Standard release: single-header (`SSDK.h`) + prebuilt `.dll`            |
+| `SSDK`       | Standard release: prebuilt `.dll`                         |
 
 | <b>NOTE:</b> Both versions are available as `.zip` and `.tar` archives.
 
