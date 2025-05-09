@@ -6,7 +6,7 @@ CALL_DIR = os.getcwd()
 RELEASE_VER = None
 
 README = """
-Sane Software Development Kit. A modular, lightweight runtime library
+# Sane Software Development Kit. A modular, lightweight runtime library
 
 You can find the latest release and additional information at:
 https://github.com/r3shape/SSDK
@@ -14,17 +14,16 @@ https://github.com/r3shape/SSDK
 This library is distributed under the terms of the MIT license,
 available in [LICENSE.txt](LICENSE.txt).
 
-# Using this package
+### Using this package
 This package contains the `SSDK` dynamic library built for x64 Windows.
 
 To use this package, simply replace an existing 64-bit SSDK.dll with the one included here.
 
-# Development packages
+### Development packages
 If you're looking for packages containing headers and static archives, check for this package:
--  SSDK-dev-2025.0.1-mingw-w64.zip (compiled using mingw-w64)
+-  SSDK-dev-VERSION-mingw-w64.zip
 
-Happy Coding!
-
+Happy Coding!  
 Izaiyah Stokes (d34d0s.dev@gmail.com)
 """
 
